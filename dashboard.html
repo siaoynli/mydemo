@@ -394,22 +394,23 @@
       background: #fff;
     }
     .fullscreen-close {
-      position: absolute;
+      position: fixed;
       top: 16px;
       right: 16px;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      z-index: 10000;
-      transition: background 0.2s;
+      z-index: 10001;
+      transition: all 0.2s;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
     }
-    .fullscreen-close:hover { background: rgba(0,0,0,0.06); }
-    body.dark .fullscreen-close { color: #e0e0e0; }
-    body.dark .fullscreen-close:hover { background: rgba(255,255,255,0.1); }
+    .fullscreen-close:hover { background: rgba(0,0,0,0.08); }
+    body.dark .fullscreen-close { color: #e0e0e0; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+    body.dark .fullscreen-close:hover { background: rgba(255,255,255,0.15); }
 
     /* 菜单折叠时图标居中 */
     .sidebar.collapsed .n-menu-item-content {
