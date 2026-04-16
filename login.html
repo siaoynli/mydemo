@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - NaiveUiAdmin Max</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/naive-ui@2.41.0/dist/index.prod.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 20% 0%, #c3e7ff 0%, #f0f4ff 35%, #fff 55%, #e8d5f5 85%, #d4b8f0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    body.dark {
+      background: radial-gradient(ellipse at 20% 0%, #1a2744 0%, #1e293b 35%, #1a1a2e 55%, #2d1b4e 85%, #1a1025 100%);
+    }
+    .page-wrapper {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+    }
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0,0,0,0.06);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s;
+      color: #555;
+    }
+    .theme-toggle:hover { background: rgba(0,0,0,0.1); }
+    body.dark .theme-toggle {
+      background: rgba(255,255,255,0.1);
+      color: #ccc;
+    }
+    body.dark .theme-toggle:hover { background: rgba(255,255,255,0.15); }
+    .login-card {
+      width: 400px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04);
+      padding: 32px 28px 28px;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    body.dark .login-card {
+      background: #232736;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+      transition: color 0.3s;
+    }
+    body.dark .card-title { color: #e0e0e0; }
+    .card-title .wave { font-size: 18px; }
+    .verification-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #666;
+      transition: color 0.3s;
+    }
+    body.dark .verification-row { color: #999; }
+    .verification-row svg { flex-shrink: 0; }
+    .verification-link {
+      color: #666;
+      text-decoration: none;
+      margin-right: 8px;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+    .verification-link:hover { color: #18a058; }
+    body.dark .verification-link { color: #999; }
+    .verification-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #999;
+      transition: color 0.3s;
+    }
+    body.dark .verification-right { color: #777; }
+    .verification-right svg { cursor: pointer; }
+    .bottom-links {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      font-size: 12px;
+    }
+    .forgot-link {
+      color: #999;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .forgot-link:hover { color: #666; }
+    body.dark .forgot-link { color: #888; }
+    body.dark .forgot-link:hover { color: #ccc; }
+    .third-party-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 16px;
+      color: #bbb;
+      font-size: 12px;
+      transition: color 0.3s;
+    }
+    body.dark .third-party-divider { color: #666; }
+    .third-party-divider::before,
+    .third-party-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e8e8e8;
+      transition: background 0.3s;
+    }
+    body.dark .third-party-divider::before,
+    body.dark .third-party-divider::after { background: #3a3f50; }
+    .third-party-icons {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+    }
+    .third-party-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid #e8e8e8;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .third-party-btn:hover {
+      border-color: #18a058;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    body.dark .third-party-btn {
+      background: #2a2e3d;
+      border-color: #3a3f50;
+    }
+    body.dark .third-party-btn:hover {
+      border-color: #18a058;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    /* Custom slider for verification */
+    .custom-slider-wrapper {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(to right, #f0f4ff 0%, #e8f0fe 100%);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #e8e8e8;
+      user-select: none;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    body.dark .custom-slider-wrapper {
+      background: linear-gradient(to right, #2a2e3d 0%, #252938 100%);
+      border-color: #3a3f50;
+    }
+    .custom-slider-track {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(to right, #e0ecff, #d0e0ff);
+      border-radius: 8px;
+      transition: none;
+    }
+    body.dark .custom-slider-track {
+      background: linear-gradient(to right, #3a5a8a, #2a4a7a);
+    }
+    .custom-slider-text {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #999;
+      z-index: 1;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+    body.dark .custom-slider-text { color: #888; }
+    .custom-slider-thumb {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: box-shadow 0.2s, background 0.3s;
+    }
+    body.dark .custom-slider-thumb {
+      background: #3a3f50;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .custom-slider-thumb:active { cursor: grabbing; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
+    body.dark .custom-slider-thumb:active { box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+    .custom-slider-thumb.done { background: #18a058; }
+    .custom-slider-text.success { color: #18a058; }
+    .github-icon { fill: #333; transition: fill 0.3s; }
+    body.dark .github-icon { fill: #e0e0e0; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <n-config-provider :theme="theme">
+    <n-message-provider>
+      <div class="page-wrapper">
+        <!-- Header -->
+        <div class="page-header" style="justify-content: flex-end;">
+          <button class="theme-toggle" @click="toggleTheme">
+            <n-icon :size="18">
+              <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </n-icon>
+          </button>
+        </div>
+
+        <!-- Login Card -->
+        <div class="login-card">
+          <div class="card-title">Hi, 欢迎登录 <span class="wave">👋</span></div>
+
+          <!-- Tabs -->
+          <n-tabs type="segment" size="small" v-model:value="activeTab" style="margin-bottom: 20px;">
+            <n-tab-pane name="password" tab="密码"></n-tab-pane>
+            <n-tab-pane name="phone" tab="手机号"></n-tab-pane>
+            <n-tab-pane name="qrcode" tab="二维码"></n-tab-pane>
+          </n-tabs>
+
+          <!-- Password Form -->
+          <template v-if="activeTab === 'password'">
+            <!-- Username -->
+            <n-input
+              v-model:value="username"
+              placeholder="用户名 / 邮箱"
+              size="large"
+              round
+              style="margin-bottom: 12px;"
+            >
+              <template #prefix>
+                <n-icon :size="18" color="#999">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </n-icon>
+              </template>
+            </n-input>
+
+            <!-- Password -->
+            <n-input
+              v-model:value="password"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="请输入密码"
+              size="large"
+              round
+              show-password-on="mousedown"
+              style="margin-bottom: 4px;"
+            >
+              <template #prefix>
+                <n-icon :size="18" color="#999">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </n-icon>
+              </template>
+            </n-input>
+
+            <!-- Verification -->
+            <div class="verification-row">
+              <n-icon :size="16" color="#18a058">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </n-icon>
+              <a class="verification-link">安全验证</a>
+              <span class="verification-right">
+                <n-icon :size="16">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                </n-icon>
+                <span>图形验证</span>
+              </span>
+            </div>
+
+            <!-- Custom Slider Verification -->
+            <div
+              class="custom-slider-wrapper"
+              @mousedown="startDrag"
+              @touchstart="startDrag"
+            >
+              <div
+                class="custom-slider-track"
+                :style="{ width: sliderPercent + '%' }"
+              ></div>
+              <div class="custom-slider-text" :class="{ success: sliderDone }">
+                <template v-if="!sliderDone">拖动滑块完成安全验证</template>
+                <template v-else>验证成功</template>
+              </div>
+              <div
+                class="custom-slider-thumb"
+                :class="{ done: sliderDone }"
+                :style="{ left: sliderPercent + '%' }"
+              >
+                <n-icon :size="18" :color="sliderDone ? '#fff' : '#999'">
+                  <svg v-if="!sliderDone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                </n-icon>
+              </div>
+            </div>
+
+            <!-- Login Button -->
+            <n-button
+              type="primary"
+              size="large"
+              block
+              round
+              :disabled="!sliderDone"
+              @click="handleLogin"
+            >
+              登 录
+            </n-button>
+
+            <!-- Bottom Links -->
+            <div class="bottom-links">
+              <a href="#" class="forgot-link">忘记密码</a>
+            </div>
+
+            <!-- Third Party Login -->
+            <div class="third-party-divider">第三方登录</div>
+            <div class="third-party-icons">
+              <!-- WeChat -->
+              <button class="third-party-btn" title="微信登录">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#07c160">
+                  <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
+                </svg>
+              </button>
+              <!-- QQ -->
+              <button class="third-party-btn" title="QQ登录">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#12b7f5">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5v-1c-2.5-.5-4-2-4-4 0-1.5 1-3 2.5-3.5C9.5 7 10.5 6 12 6s2.5 1 2.5 3c1.5.5 2.5 2 2.5 3.5 0 2-1.5 3.5-4 4v1h-2z"/>
+                </svg>
+              </button>
+              <!-- GitHub -->
+              <button class="third-party-btn" title="GitHub登录">
+                <svg width="18" height="18" viewBox="0 0 24 24" class="github-icon">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+              </button>
+            </div>
+          </template>
+
+          <!-- Phone Form -->
+          <template v-else-if="activeTab === 'phone'">
+            <n-input
+              v-model:value="phone"
+              placeholder="请输入手机号"
+              size="large"
+              round
+              style="margin-bottom: 12px;"
+            >
+              <template #prefix>
+                <n-icon :size="18" color="#999">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                  </svg>
+                </n-icon>
+              </template>
+            </n-input>
+            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+              <n-input
+                v-model:value="verifyCode"
+                placeholder="验证码"
+                size="large"
+                round
+              />
+              <n-button
+                size="large"
+                round
+                :disabled="countdown > 0"
+                @click="sendCode"
+              >
+                {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
+              </n-button>
+            </div>
+            <n-button type="primary" size="large" block round @click="handleLogin">登 录</n-button>
+          </template>
+
+          <!-- QR Code -->
+          <template v-else>
+            <div style="text-align: center; padding: 20px 0;">
+              <div style="width: 180px; height: 180px; margin: 0 auto; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center;" :style="theme ? 'background: #2a2e3d !important;' : ''">
+                <n-icon :size="48" :color="theme ? '#666' : '#ccc'">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
+                  </svg>
+                </n-icon>
+              </div>
+              <p style="margin-top: 16px; font-size: 13px;" :style="theme ? 'color: #888;' : 'color: #999;'">使用手机扫码登录</p>
+            </div>
+          </template>
+        </div>
+      </div>
+    </n-message-provider>
+  </n-config-provider>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
+const {
+  NConfigProvider, NMessageProvider, NButton, NInput, NTabs, NTabPane,
+  NIcon, NDivider, NText, darkTheme
+} = naive;
+
+const app = createApp({
+  setup() {
+    const theme = ref(null);
+    const activeTab = ref('password');
+    const username = ref('');
+    const password = ref('');
+    const showPassword = ref(false);
+    const phone = ref('');
+    const verifyCode = ref('');
+    const countdown = ref(0);
+
+    // Slider verification
+    const sliderPercent = ref(0);
+    const sliderDone = ref(false);
+    let isDragging = false;
+    let startX = 0;
+    let wrapperWidth = 0;
+
+    const toggleTheme = () => {
+      theme.value = theme.value === null ? darkTheme : null;
+      document.body.classList.toggle('dark', theme.value !== null);
+    };
+
+    const startDrag = (e) => {
+      if (sliderDone.value) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      isDragging = true;
+      startX = clientX;
+      const wrapper = e.currentTarget;
+      wrapperWidth = wrapper.offsetWidth;
+
+      const onMove = (ev) => {
+        if (!isDragging) return;
+        const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
+        let diff = cx - startX;
+        let pct = Math.max(0, Math.min(100, (diff / wrapperWidth) * 100));
+        sliderPercent.value = pct;
+      };
+      const onEnd = () => {
+        isDragging = false;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onEnd);
+        document.removeEventListener('touchmove', onMove);
+        document.removeEventListener('touchend', onEnd);
+        if (sliderPercent.value >= 95) {
+          sliderDone.value = true;
+          sliderPercent.value = 100;
+        } else {
+          sliderPercent.value = 0;
+        }
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onEnd);
+      document.addEventListener('touchmove', onMove);
+      document.addEventListener('touchend', onEnd);
+    };
+
+    const handleLogin = () => {
+      if (activeTab.value === 'password') {
+        if (!username.value) {
+          window.$message?.warning('请输入用户名');
+          return;
+        }
+        if (!password.value) {
+          window.$message?.warning('请输入密码');
+          return;
+        }
+        if (!sliderDone.value) {
+          window.$message?.warning('请完成安全验证');
+          return;
+        }
+      }
+      if (activeTab.value === 'phone') {
+        if (!phone.value) {
+          window.$message?.warning('请输入手机号');
+          return;
+        }
+        if (!verifyCode.value) {
+          window.$message?.warning('请输入验证码');
+          return;
+        }
+      }
+      window.$message?.success('登录成功！');
+    };
+
+    const sendCode = () => {
+      if (!phone.value) {
+        window.$message?.warning('请输入手机号');
+        return;
+      }
+      countdown.value = 60;
+      window.$message?.info('验证码已发送');
+      const timer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) clearInterval(timer);
+      }, 1000);
+    };
+
+    return {
+      theme, darkTheme, toggleTheme,
+      activeTab,
+      username, password, showPassword,
+      phone, verifyCode, countdown,
+      sliderPercent, sliderDone, startDrag,
+      handleLogin, sendCode
+    };
+  }
+});
+
+app.component('n-config-provider', NConfigProvider);
+app.component('n-message-provider', NMessageProvider);
+app.component('n-button', NButton);
+app.component('n-input', NInput);
+app.component('n-tabs', NTabs);
+app.component('n-tab-pane', NTabPane);
+app.component('n-icon', NIcon);
+
+app.mount('#app');
+</script>
+</body>
+</html>
