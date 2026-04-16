@@ -33,6 +33,7 @@
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
     body.dark .tab-item { color: #ccc; }
+    body.dark .tab-item svg { color: #ccc; }
     body.dark .tab-item:hover { background: rgba(255,255,255,0.05); }
     body.dark .tab-item .close-icon:hover { background: rgba(255,255,255,0.1); }
     body.dark .tab-bar-actions .tab-action-btn { color: #ccc; }
@@ -271,7 +272,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 16px;
+      padding: 10px;
     }
     .stat-card {
       border-radius: 8px;
@@ -279,6 +280,7 @@
       display: flex;
       align-items: flex-start;
       gap: 16px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     }
     .stat-icon {
       width: 48px;
@@ -612,11 +614,7 @@
               :class="{ active: activeTab === tab.key }"
               @click="activeTab = tab.key"
             >
-              <n-icon :size="14">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                </svg>
-              </n-icon>
+              <span v-html="tab.icon" style="display: flex; align-items: center;"></span>
               <span>{{ tab.label }}</span>
               <span class="close-icon" v-if="tabs.length > 1" @click.stop="closeTab(tab.key)">
                 <n-icon :size="12">
@@ -896,10 +894,17 @@ const app = createApp({
     };
 
     // Tab 管理
+    // Tab 定义（带图标）
+    const tabDefinitions = {
+      dashboard: { key: 'dashboard', label: '仪表盘', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>' },
+      analysis: { key: 'analysis', label: '分析页', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
+      workbench: { key: 'workbench', label: '工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' }
+    };
+
     const tabs = ref([
-      { key: 'dashboard', label: '仪表盘' },
-      { key: 'analysis', label: '分析页' },
-      { key: 'workbench', label: '工作台' }
+      { ...tabDefinitions.dashboard },
+      { ...tabDefinitions.analysis },
+      { ...tabDefinitions.workbench }
     ]);
 
     // 图标渲染辅助
@@ -919,7 +924,7 @@ const app = createApp({
     const handleTabAction = (key) => {
       const idx = tabs.value.findIndex(t => t.key === activeTab.value);
       if (key === 'close-all') {
-        tabs.value = [{ key: 'dashboard', label: '仪表盘' }];
+        tabs.value = [{ ...tabDefinitions.dashboard }];
         activeTab.value = 'dashboard';
       } else if (key === 'close-others') {
         tabs.value = [tabs.value[idx]];
