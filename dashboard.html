@@ -45,6 +45,7 @@
       background: #1a1c28;
       color: #e0e0e0;
     }
+    body.dark .main-wrapper { background: #0f1117; }
     body.dark .stat-card {
       background: #232736;
     }
@@ -126,6 +127,8 @@
       flex-direction: column;
       overflow: hidden;
       min-width: 0;
+      background: #dedede;
+      padding: 4px 4px 4px 0;
     }
 
     /* 顶部操作栏 */
@@ -154,6 +157,8 @@
     .layout-header {
       flex-shrink: 0;
       padding: 0 12px;
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
     }
     .breadcrumb-area { flex: 1; min-width: 0; }
     .top-bar-actions {
