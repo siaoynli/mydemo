@@ -162,6 +162,12 @@
       flex-shrink: 0;
     }
     .top-bar .collapse-btn:hover { background: rgba(128,128,128,0.1); }
+    .top-bar .collapse-btn svg {
+      transition: transform 0.2s;
+    }
+    .top-bar .collapse-btn:hover svg {
+      transform: scale(1.2);
+    }
 
     /* Header */
     .layout-header {
@@ -189,6 +195,12 @@
       position: relative;
     }
     .top-bar-actions .action-btn:hover { background: rgba(128,128,128,0.1); }
+    .top-bar-actions .action-btn svg {
+      transition: transform 0.2s;
+    }
+    .top-bar-actions .action-btn:hover svg {
+      transform: scale(1.2);
+    }
     .top-bar-actions .action-btn .badge {
       position: absolute;
       top: 2px;
@@ -366,6 +378,12 @@
       transition: background 0.2s;
     }
     .tab-bar-actions .tab-action-btn:hover { background: rgba(128,128,128,0.1); }
+    .tab-bar-actions .tab-action-btn svg {
+      transition: transform 0.2s;
+    }
+    .tab-bar-actions .tab-action-btn:hover svg {
+      transform: scale(1.2);
+    }
 
     /* 主体内容 */
     .main-content {
@@ -1031,7 +1049,7 @@
             </div>
             <!-- Tab 操作按钮 -->
             <div class="tab-bar-actions">
-              <n-dropdown :options="tabActionOptions" trigger="click" @select="handleTabAction">
+              <n-dropdown :options="getTabActionOptions()" trigger="click" @select="handleTabAction">
                 <div class="tab-action-btn">
                   <n-icon :size="16">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1594,16 +1612,29 @@ const app = createApp({
       width: '16', height: '16', innerHTML: path
     });
 
-    const tabActionOptions = [
-      { label: '关闭全部标签', key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
-      { label: '关闭其他标签', key: 'close-others', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>') },
-      { label: '关闭左侧', key: 'close-left', icon: renderIcon('<polyline points="15 18 9 12 15 6"/>') },
-      { label: '关闭右侧', key: 'close-right', icon: renderIcon('<polyline points="9 18 15 12 9 6"/>') }
-    ];
+    const getTabActionOptions = () => {
+      const idx = tabs.value.findIndex(t => t.key === activeTab.value);
+      const isLast = idx === tabs.value.length - 1;
+      const isFirst = idx === 0;
+      return [
+        { label: '重新加载', key: 'refresh', icon: renderIcon('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>') },
+        { label: '关闭当前', key: 'close-current', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'), disabled: isFirst },
+        { label: '关闭全部', key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
+        { label: '关闭其他', key: 'close-others', icon: renderIcon('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><line x1="12" y1="12" x2="17" y2="17"/><line x1="17" y1="12" x2="12" y2="17"/>') },
+        { label: '关闭左侧', key: 'close-left', icon: renderIcon('<polyline points="15 18 9 12 15 6"/>'), disabled: isFirst },
+        { label: '关闭右侧', key: 'close-right', icon: renderIcon('<polyline points="9 18 15 12 9 6"/>'), disabled: isLast }
+      ];
+    };
 
     const handleTabAction = (key) => {
       const dash = tabDefinitions.dashboard;
-      if (key === 'close-all') {
+      if (key === 'close-current') {
+        closeTab(activeTab.value);
+      } else if (key === 'refresh') {
+        message.success('刷新成功');
+        drawCharts();
+        drawSparklines();
+      } else if (key === 'close-all') {
         tabs.value = [{ ...dash }];
         activeTab.value = 'dashboard';
       } else if (key === 'close-others') {
@@ -2030,7 +2061,7 @@ const app = createApp({
     return {
       theme, darkTheme, toggleTheme,
       collapsed, menuValue, menuOptions,
-      activeTab, scrollContainer, scrollToTab, tabs, tabActionOptions, handleTabAction, closeTab,
+      activeTab, scrollContainer, scrollToTab, tabs, getTabActionOptions, handleTabAction, closeTab,
       contentFullscreen, isFullscreen,
       toggleFullscreen, toggleContentFullscreen, refreshContent,
       handleUserAction,
