@@ -37,6 +37,10 @@
     body.dark .tab-item .close-icon:hover { background: rgba(255,255,255,0.1); }
     body.dark .tab-bar-actions .tab-action-btn { color: #ccc; }
     body.dark .tab-bar-actions .tab-action-btn:hover { background: rgba(255,255,255,0.08); }
+    body.dark .tab-bar-actions {
+      border-left-color: rgba(255,255,255,0.08);
+      box-shadow: -2px 0 6px rgba(0,0,0,0.2);
+    }
     body.dark .main-content {
       background: #1a1c28;
       color: #e0e0e0;
@@ -224,6 +228,9 @@
       gap: 2px;
       margin-left: auto;
       flex-shrink: 0;
+      padding-left: 8px;
+      border-left: 1px solid rgba(128,128,128,0.1);
+      box-shadow: -2px 0 6px rgba(0,0,0,0.04);
     }
     .tab-bar-actions .tab-action-btn {
       cursor: pointer;
