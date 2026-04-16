@@ -393,6 +393,23 @@
       padding: 16px;
       background: #fff;
     }
+    .fullscreen-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10000;
+      transition: background 0.2s;
+    }
+    .fullscreen-close:hover { background: rgba(0,0,0,0.06); }
+    body.dark .fullscreen-close { color: #e0e0e0; }
+    body.dark .fullscreen-close:hover { background: rgba(255,255,255,0.1); }
 
     /* 菜单折叠时图标居中 */
     .sidebar.collapsed .n-menu-item-content {
@@ -615,6 +632,13 @@
 
           <!-- 主体内容 -->
           <div class="main-content" :class="{ fullscreen: contentFullscreen }">
+            <div v-if="contentFullscreen" class="fullscreen-close" @click="toggleContentFullscreen" title="退出全屏">
+              <n-icon :size="20">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </n-icon>
+            </div>
             <!-- 统计卡片 -->
             <div class="stat-cards">
               <div class="stat-card" v-for="(stat, i) in stats" :key="i">
