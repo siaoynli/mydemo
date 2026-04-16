@@ -304,18 +304,48 @@
           </template>
 
           <!-- QR Code -->
-          <template v-else>
-            <div style="text-align: center; padding: 20px 0;">
-              <div style="width: 180px; height: 180px; margin: 0 auto; background: #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center;" :style="theme ? 'background: #2a2e3d !important;' : ''">
-                <n-icon :size="48" :color="theme ? '#666' : '#ccc'">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/>
-                  </svg>
-                </n-icon>
+          <div v-show="activeTab === 'qrcode'" style="text-align: center; padding: 20px 0;">
+            <div
+              style="position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; overflow: hidden; cursor: pointer;"
+              @click="refreshQRCode"
+              @mouseenter="showQROverlay = true"
+              @mouseleave="showQROverlay = false"
+            >
+              <!-- QR Code SVG -->
+              <svg id="qrcode-svg" width="180" height="180" viewBox="0 0 180 180">
+                <rect width="180" height="180" fill="#fff"/>
+              </svg>
+              <!-- Hover Overlay -->
+              <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: opacity 0.2s;"
+                   :style="{ opacity: showQROverlay ? 1 : 0 }">
+                <span style="color: #fff; font-size: 13px; text-align: center; padding: 0 10px; line-height: 1.4;">点击刷新二维码</span>
               </div>
-              <p style="margin-top: 16px; font-size: 13px;" :style="theme ? 'color: #888;' : 'color: #999;'">使用手机扫码登录</p>
             </div>
-          </template>
+            <!-- Countdown Circle -->
+            <div style="margin-top: 16px; display: flex; justify-content: center;">
+              <div style="position: relative; width: 64px; height: 64px;">
+                <svg width="64" height="64" viewBox="0 0 64 64" style="transform: rotate(-90deg); transform-origin: center;">
+                  <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" :stroke="theme ? '#3a3f50' : '#e8e8e8'"/>
+                  <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" stroke="#18a058"
+                    :stroke-dasharray="circumference"
+                    :stroke-dashoffset="strokeOffset"
+                    stroke-linecap="round"
+                    style="transition: stroke-dashoffset 1s linear;"/>
+                </svg>
+                <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;"
+                  :style="theme ? 'color: #ccc;' : 'color: #333;'">
+                  {{ qrCountdownText }}
+                </span>
+              </div>
+            </div>
+            <!-- WeChat Scan Hint -->
+            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#07c160">
+                <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
+              </svg>
+              <p style="font-size: 13px;" :style="theme ? 'color: #888;' : 'color: #999;'">使用微信扫码登录</p>
+            </div>
+          </div>
         </div>
       </div>
     </n-message-provider>
@@ -342,6 +372,74 @@ const app = createApp({
     const showPassword = ref(false);
     const isSending = ref(false);
     const isLoggingIn = ref(false);
+    const showQROverlay = ref(false);
+    const qrCountdown = ref(300);
+    const QR_TOTAL = 300;
+    const circumference = 2 * Math.PI * 28;
+    let qrTimer = null;
+
+    const strokeOffset = computed(() => {
+      return circumference * (1 - qrCountdown.value / QR_TOTAL);
+    });
+
+    const qrCountdownText = computed(() => {
+      const mins = Math.floor(qrCountdown.value / 60);
+      const secs = qrCountdown.value % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    });
+
+    const generateQRCode = () => {
+      const svg = document.getElementById('qrcode-svg');
+      if (!svg) return;
+      // 清除旧内容（保留第一个 rect 背景）
+      const bg = svg.querySelector('rect');
+      svg.innerHTML = '';
+      svg.appendChild(bg);
+
+      const size = 180;
+      const modules = 25;
+      const cellSize = size / modules;
+      // 使用随机种子生成伪二维码图案
+      const seed = Date.now();
+      let rng = seed;
+      const random = () => { rng = (rng * 16807 + 0) % 2147483647; return rng / 2147483647; };
+
+      const rects = [];
+      for (let row = 0; row < modules; row++) {
+        for (let col = 0; col < modules; col++) {
+          // 定位图案 - 三个角
+          const isTopLeft = row < 7 && col < 7;
+          const isTopRight = row < 7 && col >= modules - 7;
+          const isBottomLeft = row >= modules - 7 && col < 7;
+
+          if (isTopLeft || isTopRight || isBottomLeft) {
+            const baseRow = isTopLeft ? 0 : isTopRight ? 0 : modules - 7;
+            const baseCol = isTopLeft ? 0 : isTopRight ? modules - 7 : 0;
+            const r = row - baseRow;
+            const c = col - baseCol;
+            if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+              rects.push(`<rect x="${(col * cellSize).toFixed(1)}" y="${(row * cellSize).toFixed(1)}" width="${cellSize.toFixed(1)}" height="${cellSize.toFixed(1)}" fill="#1a1a1a"/>`);
+            }
+          } else if (random() > 0.5) {
+            rects.push(`<rect x="${(col * cellSize).toFixed(1)}" y="${(row * cellSize).toFixed(1)}" width="${cellSize.toFixed(1)}" height="${cellSize.toFixed(1)}" fill="#1a1a1a"/>`);
+          }
+        }
+      }
+      svg.innerHTML += rects.join('');
+    };
+
+    const refreshQRCode = () => {
+      qrCountdown.value = QR_TOTAL;
+      generateQRCode();
+      if (qrTimer) clearInterval(qrTimer);
+      qrTimer = setInterval(() => {
+        qrCountdown.value--;
+        if (qrCountdown.value <= 0) {
+          clearInterval(qrTimer);
+          qrTimer = null;
+        }
+      }, 1000);
+    };
 
     const toggleTheme = () => {
       theme.value = theme.value === null ? darkTheme : null;
@@ -399,13 +497,32 @@ const app = createApp({
       }, 1000);
     };
 
+    onMounted(() => {
+      generateQRCode();
+      qrTimer = setInterval(() => {
+        qrCountdown.value--;
+        if (qrCountdown.value <= 0) {
+          clearInterval(qrTimer);
+          qrTimer = null;
+        }
+      }, 1000);
+    });
+
+    onUnmounted(() => {
+      if (qrTimer) clearInterval(qrTimer);
+    });
+
     return {
       theme, darkTheme, toggleTheme,
       activeTab,
       phone, verifyCode, countdown,
       password, showPassword,
       isSending, isLoggingIn,
-      handleLogin, sendCode
+      handleLogin, sendCode,
+      showQROverlay,
+      qrCountdown, qrCountdownText,
+      circumference, strokeOffset,
+      refreshQRCode, generateQRCode
     };
   }
 });
