@@ -902,11 +902,18 @@ const app = createApp({
       { key: 'workbench', label: '工作台' }
     ]);
 
+    // 图标渲染辅助
+    const renderIcon = (path) => () => h('svg', {
+      viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+      'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+      width: '16', height: '16', innerHTML: path
+    });
+
     const tabActionOptions = [
-      { label: '关闭全部标签', key: 'close-all' },
-      { label: '关闭其他标签', key: 'close-others' },
-      { label: '关闭左侧', key: 'close-left' },
-      { label: '关闭右侧', key: 'close-right' }
+      { label: '关闭全部标签', key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
+      { label: '关闭其他标签', key: 'close-others', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>') },
+      { label: '关闭左侧', key: 'close-left', icon: renderIcon('<polyline points="15 18 9 12 15 6"/>') },
+      { label: '关闭右侧', key: 'close-right', icon: renderIcon('<polyline points="9 18 15 12 9 6"/>') }
     ];
 
     const handleTabAction = (key) => {
