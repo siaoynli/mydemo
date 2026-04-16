@@ -339,15 +339,21 @@
       padding: 16px;
     }
 
-    /* 菜单折叠时图标居中对齐 */
-    .sidebar.collapsed .n-menu-item-content {
-      padding-left: 0 !important;
+    /* 菜单折叠时图标垂直居中 */
+    .sidebar.collapsed .n-menu-item-content,
+    .sidebar.collapsed .n-submenu {
       justify-content: center !important;
+      padding: 0 !important;
     }
-    .sidebar.collapsed .n-submenu .n-menu-item-content-header {
+    .sidebar.collapsed .n-menu-item-content__icon,
+    .sidebar.collapsed .n-submenu > .n-menu-item-content > .n-menu-item-content__icon {
+      margin: 0 auto !important;
+    }
+    /* 折叠后隐藏子菜单展开箭头 */
+    .sidebar.collapsed .n-submenu .n-menu-item-content__arrow {
       display: none !important;
     }
-    .sidebar.collapsed .n-submenu-children {
+    .sidebar.collapsed .n-menu-item-content__header {
       display: none !important;
     }
   </style>
