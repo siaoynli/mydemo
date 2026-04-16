@@ -133,7 +133,6 @@
       height: 64px;
       display: flex;
       align-items: center;
-      padding: 0 12px;
       gap: 12px;
       flex-shrink: 0;
       overflow: hidden;
@@ -150,6 +149,12 @@
       flex-shrink: 0;
     }
     .top-bar .collapse-btn:hover { background: rgba(128,128,128,0.1); }
+
+    /* Header */
+    .layout-header {
+      flex-shrink: 0;
+      padding: 0 12px;
+    }
     .breadcrumb-area { flex: 1; min-width: 0; }
     .top-bar-actions {
       display: flex;
@@ -188,7 +193,6 @@
       height: 44px;
       display: flex;
       align-items: center;
-      padding: 0 12px;
       gap: 4px;
       flex-shrink: 0;
       overflow-x: auto;
@@ -471,8 +475,9 @@
 
         <!-- 主体 -->
         <div class="main-wrapper">
-          <!-- 顶部操作栏 -->
-          <div class="top-bar">
+          <header class="layout-header">
+            <!-- 顶部操作栏 -->
+            <div class="top-bar">
             <!-- 折叠按钮 -->
             <div class="collapse-btn" @click="collapsed = !collapsed">
               <n-icon :size="20">
@@ -640,6 +645,7 @@
               </div>
             </div>
           </div>
+          </header>
 
           <!-- 主体内容 -->
           <div class="main-content" :class="{ fullscreen: contentFullscreen }">
