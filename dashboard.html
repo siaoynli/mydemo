@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Naive Admin</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://unpkg.com/naive-ui@2.41.0/dist/index.prod.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
+      transition: background 0.3s;
+    }
+    body.dark { color-scheme: dark; }
+
+    /* 全局布局 */
+    .dashboard-layout {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      transition: all 0.3s;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: width 0.3s, min-width 0.3s, transform 0.3s;
+      overflow: hidden;
+      z-index: 100;
+    }
+    .sidebar.collapsed {
+      width: 64px;
+      min-width: 64px;
+    }
+    .sidebar-header {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .sidebar-header .logo-icon { flex-shrink: 0; }
+    .sidebar-header .logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: opacity 0.3s;
+    }
+    .sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+    .sidebar-menu { flex: 1; overflow-y: auto; overflow-x: hidden; }
+    .sidebar-menu::-webkit-scrollbar { width: 4px; }
+    .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 2px; }
+
+    /* 主体区域 */
+    .main-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* 顶部操作栏 */
+    .top-bar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .top-bar .collapse-btn {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      flex-shrink: 0;
+    }
+    .top-bar .collapse-btn:hover { background: rgba(128,128,128,0.1); }
+    .breadcrumb-area { flex: 1; min-width: 0; }
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .top-bar-actions .action-btn {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .top-bar-actions .action-btn:hover { background: rgba(128,128,128,0.1); }
+    .top-bar-actions .action-btn .badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #e74c3c;
+      color: #fff;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Tab 栏 */
+    .tab-bar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 4px;
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+    .tab-bar::-webkit-scrollbar { height: 0; }
+    .tab-item {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.2s;
+      user-select: none;
+    }
+    .tab-item:hover { background: rgba(128,128,128,0.08); }
+    .tab-item.active { background: #e8f4ff; }
+    body.dark .tab-item.active { background: rgba(30, 136, 229, 0.2); }
+    .tab-item .close-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+    .tab-item .close-icon:hover { opacity: 1; background: rgba(128,128,128,0.2); }
+    .tab-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .tab-bar-actions .tab-action-btn {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .tab-bar-actions .tab-action-btn:hover { background: rgba(128,128,128,0.1); }
+
+    /* 主体内容 */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .main-content::-webkit-scrollbar { width: 6px; }
+    .main-content::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }
+
+    /* 统计卡片 */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .stat-card {
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .stat-info { flex: 1; min-width: 0; }
+    .stat-label { font-size: 13px; margin-bottom: 8px; }
+    .stat-value { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .stat-change { font-size: 12px; display: flex; align-items: center; gap: 4px; }
+    .stat-change.up { color: #18a058; }
+    .stat-change.down { color: #e74c3c; }
+    .stat-chart { width: 80px; height: 40px; flex-shrink: 0; }
+
+    /* 内容行 */
+    .content-row {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .content-row.two-cols { grid-template-columns: 1fr 1fr; }
+    .content-row.three-cols { grid-template-columns: 1fr 1fr 1fr; }
+    .content-card {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(128,128,128,0.1);
+    }
+    .card-title { font-size: 15px; font-weight: 600; }
+    .card-body { padding: 16px 20px; }
+
+    /* 柱状+折线图容器 */
+    .chart-container { position: relative; width: 100%; height: 300px; }
+    .chart-container canvas { width: 100% !important; height: 100% !important; }
+
+    /* 用户动态列表 */
+    .activity-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(128,128,128,0.06);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      margin-right: 12px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .activity-info { flex: 1; min-width: 0; }
+    .activity-name { font-size: 14px; font-weight: 500; }
+    .activity-action { font-size: 12px; margin-top: 2px; }
+    .activity-status {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .activity-time { font-size: 12px; margin-left: 12px; flex-shrink: 0; min-width: 60px; text-align: right; }
+
+    /* 部门表格 */
+    .dept-table { width: 100%; border-collapse: collapse; }
+    .dept-table th, .dept-table td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(128,128,128,0.08);
+    }
+    .dept-table th { font-weight: 600; }
+    .dept-badge {
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    /* 快捷入口 */
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 16px;
+      padding: 10px 0;
+    }
+    .quick-link-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 4px;
+      border-radius: 8px;
+      transition: background 0.2s;
+    }
+    .quick-link-item:hover { background: rgba(128,128,128,0.06); }
+    .quick-link-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quick-link-label { font-size: 12px; text-align: center; }
+
+    /* 底部 */
+    .footer {
+      padding: 16px 20px;
+      text-align: center;
+      font-size: 12px;
+      border-top: 1px solid rgba(128,128,128,0.08);
+    }
+
+    /* 全屏样式 */
+    .main-content.fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      padding: 16px;
+    }
+
+    /* 菜单折叠时图标居中 */
+    .sidebar.collapsed .n-menu-item-content {
+      justify-content: center !important;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <n-config-provider :theme="theme">
+    <n-message-provider>
+      <div class="dashboard-layout">
+        <!-- 左侧菜单 -->
+        <div class="sidebar" :class="{ collapsed: collapsed }">
+          <!-- Logo -->
+          <div class="sidebar-header">
+            <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32">
+              <defs>
+                <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1890ff;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#722ed1;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <rect width="32" height="32" rx="8" fill="url(#logoGrad1)"/>
+              <path d="M8 10 L16 6 L24 10 L24 20 L16 26 L8 20 Z" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.9"/>
+              <path d="M16 6 L16 26" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              <path d="M8 10 L24 10" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              <path d="M8 20 L24 20" fill="none" stroke="#fff" stroke-width="1" opacity="0.5"/>
+              <circle cx="16" cy="16" r="3" fill="#fff" opacity="0.8"/>
+            </svg>
+            <span class="logo-text">Naive Admin</span>
+          </div>
+          <!-- 菜单 -->
+          <div class="sidebar-menu">
+            <n-menu
+              v-model:value="menuValue"
+              :options="menuOptions"
+              :collapsed="collapsed"
+              :collapsed-width="64"
+              :collapsed-icon-size="20"
+            />
+          </div>
+        </div>
+
+        <!-- 主体 -->
+        <div class="main-wrapper">
+          <!-- 顶部操作栏 -->
+          <div class="top-bar">
+            <!-- 折叠按钮 -->
+            <div class="collapse-btn" @click="collapsed = !collapsed">
+              <n-icon :size="20">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="!collapsed">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
+                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-else>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                </svg>
+              </n-icon>
+            </div>
+
+            <!-- 面包屑 -->
+            <div class="breadcrumb-area">
+              <n-breadcrumb separator="/">
+                <n-breadcrumb-item>首页</n-breadcrumb-item>
+                <n-breadcrumb-item>分析页</n-breadcrumb-item>
+                <n-breadcrumb-item>仪表盘</n-breadcrumb-item>
+              </n-breadcrumb>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="top-bar-actions">
+              <!-- 搜索 -->
+              <n-popover trigger="click" placement="bottom-end" :show-arrow="false">
+                <template #trigger>
+                  <div class="action-btn">
+                    <n-icon :size="18">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                    </n-icon>
+                  </div>
+                </template>
+                <div style="padding: 8px;">
+                  <n-input placeholder="搜索菜单、页面、功能..." size="small" round style="width: 260px;">
+                    <template #prefix>
+                      <n-icon :size="16">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                      </n-icon>
+                    </template>
+                  </n-input>
+                </div>
+              </n-popover>
+
+              <!-- 主题切换 -->
+              <div class="action-btn" @click="toggleTheme">
+                <n-icon :size="18">
+                  <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                  </svg>
+                </n-icon>
+              </div>
+
+              <!-- 全屏 -->
+              <div class="action-btn" @click="toggleFullscreen">
+                <n-icon :size="18">
+                  <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                  </svg>
+                </n-icon>
+              </div>
+
+              <!-- 字体大小 -->
+              <n-dropdown :options="fontSizeOptions" trigger="click" @select="changeFontSize">
+                <div class="action-btn" title="字体大小">
+                  <n-icon :size="18">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>
+                    </svg>
+                  </n-icon>
+                </div>
+              </n-dropdown>
+
+              <!-- 消息通知 -->
+              <n-popover trigger="click" placement="bottom-end" style="padding: 0; width: 320px;">
+                <template #trigger>
+                  <div class="action-btn">
+                    <n-icon :size="18">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                      </svg>
+                    </n-icon>
+                    <span class="badge">4</span>
+                  </div>
+                </template>
+                <div style="padding: 12px;">
+                  <div style="font-weight: 600; margin-bottom: 12px;">消息通知</div>
+                  <div v-for="(msg, i) in notifications" :key="i" style="padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.08); font-size: 13px;">
+                    <div style="font-weight: 500;">{{ msg.title }}</div>
+                    <div style="margin-top: 4px; opacity: 0.6;">{{ msg.time }}</div>
+                  </div>
+                </div>
+              </n-popover>
+
+              <!-- 用户下拉 -->
+              <n-dropdown :options="userDropdownOptions" trigger="click" @select="handleUserAction">
+                <div class="action-btn" style="display: flex; align-items: center; gap: 8px; padding: 4px 8px;">
+                  <n-avatar :size="28" round style="background: #1890ff; color: #fff; font-size: 13px; font-weight: 600;">管</n-avatar>
+                  <div style="line-height: 1.2;">
+                    <div style="font-size: 13px; font-weight: 500;">管理员</div>
+                    <div style="font-size: 11px; opacity: 0.6;">超级管理员</div>
+                  </div>
+                </div>
+              </n-dropdown>
+            </div>
+          </div>
+
+          <!-- Tab 栏 -->
+          <div class="tab-bar">
+            <div
+              v-for="tab in tabs"
+              :key="tab.key"
+              class="tab-item"
+              :class="{ active: activeTab === tab.key }"
+              @click="activeTab = tab.key"
+            >
+              <n-icon :size="14">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                </svg>
+              </n-icon>
+              <span>{{ tab.label }}</span>
+              <span class="close-icon" v-if="tabs.length > 1" @click.stop="closeTab(tab.key)">
+                <n-icon :size="12">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </n-icon>
+              </span>
+            </div>
+            <!-- Tab 操作按钮 -->
+            <div class="tab-bar-actions">
+              <n-dropdown :options="tabActionOptions" trigger="click" @select="handleTabAction">
+                <div class="tab-action-btn">
+                  <n-icon :size="16">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </n-icon>
+                </div>
+              </n-dropdown>
+              <div class="tab-action-btn" @click="toggleContentFullscreen" title="主题内容全屏">
+                <n-icon :size="16">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                </n-icon>
+              </div>
+              <div class="tab-action-btn" @click="refreshContent" title="刷新">
+                <n-icon :size="16">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                  </svg>
+                </n-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- 主体内容 -->
+          <div class="main-content" :class="{ fullscreen: contentFullscreen }">
+            <!-- 统计卡片 -->
+            <div class="stat-cards">
+              <div class="stat-card" v-for="(stat, i) in stats" :key="i">
+                <div class="stat-icon" :style="{ background: stat.iconBg }">
+                  <n-icon :size="24" color="#fff">
+                    <span v-html="stat.icon"></span>
+                  </n-icon>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ stat.label }}</div>
+                  <div class="stat-value">{{ stat.value }}</div>
+                  <div class="stat-change" :class="stat.isUp ? 'up' : 'down'">
+                    <n-icon :size="14">
+                      <svg v-if="stat.isUp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        <polyline points="17 6 23 6 23 12"/>
+                      </svg>
+                      <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+                        <polyline points="17 18 23 18 23 12"/>
+                      </svg>
+                    </n-icon>
+                    {{ stat.change }}
+                  </div>
+                </div>
+                <div class="stat-chart">
+                  <canvas :id="'sparkline' + i" width="80" height="40"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- 图表 + 用户动态 -->
+            <div class="content-row two-cols">
+              <!-- 柱状+折线图 -->
+              <div class="content-card">
+                <div class="card-header">
+                  <span class="card-title">订单统计</span>
+                  <div style="display: flex; gap: 12px; font-size: 12px;">
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #1890ff;"></span>
+                      订单统计
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #18a058;"></span>
+                      同比订单
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: #ff8800;"></span>
+                      转化率
+                    </span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 用户动态 -->
+              <div class="content-card">
+                <div class="card-header">
+                  <span class="card-title">用户动态</span>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                  <div class="activity-item" v-for="(act, i) in activities" :key="i">
+                    <div class="activity-avatar" :style="{ background: act.color }">{{ act.avatar }}</div>
+                    <div class="activity-info">
+                      <div class="activity-name">{{ act.name }}</div>
+                      <div class="activity-action">{{ act.action }}</div>
+                    </div>
+                    <span class="activity-status" :style="{ background: act.statusBg, color: act.statusColor }">{{ act.status }}</span>
+                    <span class="activity-time">{{ act.time }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 部门管理 + 快捷入口 -->
+            <div class="content-row two-cols">
+              <!-- 部门管理 -->
+              <div class="content-card">
+                <div class="card-header">
+                  <span class="card-title">部门管理</span>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                  <table class="dept-table">
+                    <thead>
+                      <tr>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>所属部门</th>
+                        <th>职位</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(dept, i) in departments" :key="i">
+                        <td>
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <n-avatar :size="28" round :style="{ background: dept.color, fontSize: '12px', color: '#fff' }">{{ dept.name[0] }}</n-avatar>
+                            {{ dept.name }}
+                          </div>
+                        </td>
+                        <td>{{ dept.gender }}</td>
+                        <td>{{ dept.dept }}</td>
+                        <td>{{ dept.position }}</td>
+                        <td>
+                          <span class="dept-badge" :style="{ background: dept.active ? '#e8f5e9' : '#fff3e0', color: dept.active ? '#18a058' : '#e74c3c' }">
+                            {{ dept.active ? '启用' : '禁用' }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 快捷入口 -->
+              <div class="content-card">
+                <div class="card-header">
+                  <span class="card-title">快捷入口</span>
+                </div>
+                <div class="card-body">
+                  <div class="quick-links">
+                    <div class="quick-link-item" v-for="(link, i) in quickLinks" :key="i">
+                      <div class="quick-link-icon" :style="{ background: link.bg, color: '#fff' }" v-html="link.icon"></div>
+                      <span class="quick-link-label">{{ link.label }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部 -->
+            <div class="footer">
+              Copyright © 2026 Naive Admin. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </div>
+    </n-message-provider>
+  </n-config-provider>
+</div>
+
+<script>
+const { createApp, ref, computed, onMounted, onUnmounted, nextTick, watch, h } = Vue;
+const {
+  NConfigProvider, NMessageProvider, NInput,
+  NIcon, NMenu, NBreadcrumb, NBreadcrumbItem, NAvatar,
+  NPopover, NDropdown, darkTheme, createDiscreteApi
+} = naive;
+
+const { message } = createDiscreteApi(['message']);
+
+const app = createApp({
+  setup() {
+    const theme = ref(null);
+    const collapsed = ref(false);
+    const activeTab = ref('dashboard');
+    const contentFullscreen = ref(false);
+    const isFullscreen = ref(false);
+    const menuValue = ref('dashboard');
+
+    // SVG 图标辅助 - 返回 VNode
+    function createIcon(path) {
+      return () => h('svg', {
+        viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',
+        'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+        width: '20', height: '20', innerHTML: path
+      });
+    }
+
+    // 菜单选项
+    const menuOptions = [
+      { label: '仪表盘', key: 'dashboard', icon: createIcon('<path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>') },
+      { label: '分析页', key: 'analysis', icon: createIcon('<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>') },
+      { label: '工作台', key: 'workbench', icon: createIcon('<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>') },
+      { type: 'divider', key: 'd1' },
+      {
+        label: '组件', key: 'component',
+        icon: createIcon('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>'),
+        children: [
+          { label: '基础组件', key: 'basic' },
+          { label: '表单组件', key: 'form' },
+          { label: '表格组件', key: 'table' },
+          { label: '列表组件', key: 'list' },
+          { label: '图表组件', key: 'chart' },
+          { label: '地图组件', key: 'map' },
+          {
+            label: '三级菜单', key: 'level3',
+            children: [
+              { label: '三级-1', key: 'l3-1' },
+              { label: '三级-2', key: 'l3-2' }
+            ]
+          }
+        ]
+      },
+      {
+        label: '功能', key: 'feature',
+        icon: createIcon('<path d="M13 10V3L4 14h7v7l9-11h-7z"/>'),
+        children: [
+          { label: '权限管理', key: 'permission' },
+          { label: '角色管理', key: 'role' },
+          { label: '菜单管理', key: 'menu-mgmt' },
+          { label: '数据字典', key: 'dictionary' },
+          { label: '系统日志', key: 'log' },
+          { label: '系统监控', key: 'monitor' }
+        ]
+      },
+      {
+        label: '系统管理', key: 'system',
+        icon: createIcon('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>'),
+        children: [
+          { label: '用户管理', key: 'user' },
+          { label: '部门管理', key: 'dept' },
+          { label: '岗位管理', key: 'post' },
+          { label: '参数设置', key: 'config' }
+        ]
+      },
+      { type: 'divider', key: 'd2' },
+      { label: '关于系统', key: 'about', icon: createIcon('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>') }
+    ];
+
+    // 主题切换
+    const toggleTheme = () => {
+      theme.value = theme.value === null ? darkTheme : null;
+      document.body.classList.toggle('dark', theme.value !== null);
+    };
+
+    // Tab 管理
+    const tabs = ref([
+      { key: 'dashboard', label: '仪表盘' },
+      { key: 'analysis', label: '分析页' },
+      { key: 'workbench', label: '工作台' }
+    ]);
+
+    const tabActionOptions = [
+      { label: '关闭全部标签', key: 'close-all' },
+      { label: '关闭其他标签', key: 'close-others' },
+      { label: '关闭左侧', key: 'close-left' },
+      { label: '关闭右侧', key: 'close-right' }
+    ];
+
+    const handleTabAction = (key) => {
+      const idx = tabs.value.findIndex(t => t.key === activeTab.value);
+      if (key === 'close-all') {
+        tabs.value = [{ key: 'dashboard', label: '仪表盘' }];
+        activeTab.value = 'dashboard';
+      } else if (key === 'close-others') {
+        tabs.value = [tabs.value[idx]];
+      } else if (key === 'close-left') {
+        tabs.value = tabs.value.slice(idx);
+      } else if (key === 'close-right') {
+        tabs.value = tabs.value.slice(0, idx + 1);
+      }
+    };
+
+    const closeTab = (key) => {
+      if (tabs.value.length <= 1) return;
+      const idx = tabs.value.findIndex(t => t.key === key);
+      tabs.value.splice(idx, 1);
+      if (activeTab.value === key) {
+        activeTab.value = tabs.value[Math.max(0, idx - 1)].key;
+      }
+    };
+
+    // 全屏
+    const toggleFullscreen = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+        isFullscreen.value = true;
+      } else {
+        document.exitFullscreen();
+        isFullscreen.value = false;
+      }
+    };
+
+    const toggleContentFullscreen = () => {
+      contentFullscreen.value = !contentFullscreen.value;
+    };
+
+    const refreshContent = () => {
+      message.success('刷新成功');
+      drawCharts();
+      drawSparklines();
+    };
+
+    // 字体大小
+    const fontSizeOptions = [
+      { label: '小', key: 'small' },
+      { label: '默认', key: 'default' },
+      { label: '大', key: 'large' }
+    ];
+    const changeFontSize = (key) => {
+      const sizes = { small: '13px', default: '14px', large: '16px' };
+      document.documentElement.style.fontSize = sizes[key] || '14px';
+      message.success(`字体大小已切换为${key === 'small' ? '小' : key === 'large' ? '大' : '默认'}`);
+    };
+
+    // 用户下拉
+    const userDropdownOptions = [
+      { label: '个人中心', key: 'profile' },
+      { label: '系统设置', key: 'settings' },
+      { label: '退出登录', key: 'logout' }
+    ];
+    const handleUserAction = (key) => {
+      if (key === 'logout') {
+        message.info('退出登录');
+      } else {
+        message.info(key === 'profile' ? '个人中心' : '系统设置');
+      }
+    };
+
+    // 通知
+    const notifications = [
+      { title: '系统升级通知', time: '2026-04-16 10:30' },
+      { title: '新版本 v2.1.0 已发布', time: '2026-04-16 09:15' },
+      { title: '数据库备份完成', time: '2026-04-15 23:00' },
+      { title: '有新的用户注册', time: '2026-04-15 18:20' }
+    ];
+
+    // 统计数据
+    const stats = [
+      {
+        label: '访问量',
+        value: '5.4万',
+        change: '+1.2%',
+        isUp: true,
+        iconBg: 'linear-gradient(135deg, #36a3f7, #1890ff)',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 012-2h6a2 2 0 012 2v1.662"/></svg>',
+        sparkData: [30, 45, 35, 50, 40, 60, 55, 70, 65, 75, 60, 80]
+      },
+      {
+        label: '销售额',
+        value: '12.3万',
+        change: '-2.4%',
+        isUp: false,
+        iconBg: 'linear-gradient(135deg, #18a058, #00b894)',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',
+        sparkData: [50, 45, 55, 40, 50, 35, 45, 30, 40, 25, 35, 30]
+      },
+      {
+        label: '订单量',
+        value: '32.5万',
+        change: '+0.5%',
+        isUp: true,
+        iconBg: 'linear-gradient(135deg, #ff8800, #e67e22)',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>',
+        sparkData: [40, 50, 45, 55, 60, 50, 65, 55, 70, 60, 75, 65]
+      },
+      {
+        label: '活跃用户',
+        value: '3.8万',
+        change: '+3.8%',
+        isUp: true,
+        iconBg: 'linear-gradient(135deg, #e74c3c, #c0392b)',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+        sparkData: [20, 35, 25, 45, 30, 50, 40, 60, 55, 70, 50, 75]
+      }
+    ];
+
+    // 用户动态
+    const activities = [
+      { name: '王小明', action: '提交了新的订单 #20260416001', status: '成功', statusBg: '#e8f5e9', statusColor: '#18a058', avatar: '王', color: '#1890ff', time: '10分钟前' },
+      { name: '李小红', action: '更新了用户资料信息', status: '成功', statusBg: '#e8f5e9', statusColor: '#18a058', avatar: '李', color: '#e74c3c', time: '25分钟前' },
+      { name: '张大伟', action: '创建了新项目 数据分析平台', status: '进行中', statusBg: '#e3f2fd', statusColor: '#1890ff', avatar: '张', color: '#ff8800', time: '1小时前' },
+      { name: '陈思思', action: '删除了过期数据记录', status: '失败', statusBg: '#fce4ec', statusColor: '#e74c3c', avatar: '陈', color: '#722ed1', time: '2小时前' },
+      { name: '刘建国', action: '导出了月度报表', status: '成功', statusBg: '#e8f5e9', statusColor: '#18a058', avatar: '刘', color: '#18a058', time: '3小时前' },
+      { name: '赵美玲', action: '审批了报销申请', status: '成功', statusBg: '#e8f5e9', statusColor: '#18a058', avatar: '赵', color: '#13c2c2', time: '4小时前' }
+    ];
+
+    // 部门数据
+    const departments = [
+      { name: '王小明', gender: '男', dept: '技术部', position: '前端工程师', active: true, color: '#1890ff' },
+      { name: '李小红', gender: '女', dept: '产品部', position: '产品经理', active: true, color: '#e74c3c' },
+      { name: '张大伟', gender: '男', dept: '技术部', position: '后端工程师', active: true, color: '#ff8800' },
+      { name: '陈思思', gender: '女', dept: '设计部', position: 'UI设计师', active: false, color: '#722ed1' },
+      { name: '刘建国', gender: '男', dept: '运营部', position: '运营主管', active: true, color: '#18a058' }
+    ];
+
+    // 快捷入口
+    const quickLinks = [
+      { label: '用户管理', bg: '#1890ff', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
+      { label: '角色管理', bg: '#722ed1', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>' },
+      { label: '菜单管理', bg: '#18a058', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>' },
+      { label: '系统日志', bg: '#ff8800', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
+      { label: '数据字典', bg: '#13c2c2', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
+      { label: '系统监控', bg: '#e74c3c', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>' },
+      { label: '文件管理', bg: '#fa8c16', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' },
+      { label: '参数设置', bg: '#2f54eb', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' }
+    ];
+
+    // 绘制迷你图
+    function drawSparkline(canvasId, data, color) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const max = Math.max(...data);
+      const min = Math.min(...data);
+      const range = max - min || 1;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        const x = (i / (data.length - 1)) * w;
+        const y = h - ((v - min) / range) * (h - 4) - 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // 填充
+      ctx.lineTo(w, h);
+      ctx.lineTo(0, h);
+      ctx.closePath();
+      ctx.fillStyle = color + '15';
+      ctx.fill();
+    }
+
+    // 绘制主图表（柱状+折线混合）
+    function drawMainChart() {
+      const canvas = document.getElementById('mainChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width * 2;
+      canvas.height = rect.height * 2;
+      ctx.scale(2, 2);
+      const w = rect.width;
+      const h = rect.height;
+
+      const isDark = theme.value !== null;
+      const textColor = isDark ? '#999' : '#666';
+      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+      const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+      const barData1 = [32, 45, 38, 52, 48, 65, 58, 72, 60, 78, 65, 82];
+      const barData2 = [25, 35, 30, 42, 38, 50, 45, 58, 48, 62, 52, 68];
+      const lineData = [52, 60, 55, 65, 62, 72, 68, 78, 70, 82, 75, 88];
+
+      const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+      const chartW = w - padding.left - padding.right;
+      const chartH = h - padding.top - padding.bottom;
+      const barGroupW = chartW / months.length;
+      const barW = barGroupW * 0.25;
+      const maxVal = 100;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 网格线
+      for (let i = 0; i <= 5; i++) {
+        const y = padding.top + (chartH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(w - padding.right, y);
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Y 轴标签
+        const val = maxVal - (maxVal / 5) * i;
+        ctx.fillStyle = textColor;
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(val + '%', padding.left - 8, y + 4);
+      }
+
+      // X 轴标签
+      months.forEach((m, i) => {
+        const x = padding.left + barGroupW * i + barGroupW / 2;
+        ctx.fillStyle = textColor;
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(m, x, h - 10);
+      });
+
+      // 柱状图
+      months.forEach((m, i) => {
+        const x = padding.left + barGroupW * i + barGroupW * 0.15;
+        const y1 = padding.top + chartH - (barData1[i] / maxVal) * chartH;
+        const y2 = padding.top + chartH - (barData2[i] / maxVal) * chartH;
+
+        // 柱1
+        const grad1 = ctx.createLinearGradient(x, y1, x, padding.top + chartH);
+        grad1.addColorStop(0, '#1890ff');
+        grad1.addColorStop(1, '#1890ff88');
+        ctx.fillStyle = grad1;
+        ctx.beginPath();
+        const r = 3;
+        ctx.moveTo(x + r, y1);
+        ctx.lineTo(x + barW - r, y1);
+        ctx.quadraticCurveTo(x + barW, y1, x + barW, y1 + r);
+        ctx.lineTo(x + barW, padding.top + chartH);
+        ctx.lineTo(x, padding.top + chartH);
+        ctx.lineTo(x, y1 + r);
+        ctx.quadraticCurveTo(x, y1, x + r, y1);
+        ctx.fill();
+
+        // 柱2
+        const x2 = x + barW + 2;
+        const grad2 = ctx.createLinearGradient(x2, y2, x2, padding.top + chartH);
+        grad2.addColorStop(0, '#18a058');
+        grad2.addColorStop(1, '#18a05888');
+        ctx.fillStyle = grad2;
+        ctx.beginPath();
+        ctx.moveTo(x2 + r, y2);
+        ctx.lineTo(x2 + barW - r, y2);
+        ctx.quadraticCurveTo(x2 + barW, y2, x2 + barW, y2 + r);
+        ctx.lineTo(x2 + barW, padding.top + chartH);
+        ctx.lineTo(x2, padding.top + chartH);
+        ctx.lineTo(x2, y2 + r);
+        ctx.quadraticCurveTo(x2, y2, x2 + r, y2);
+        ctx.fill();
+      });
+
+      // 折线图
+      ctx.beginPath();
+      lineData.forEach((v, i) => {
+        const x = padding.left + barGroupW * i + barGroupW / 2;
+        const y = padding.top + chartH - (v / maxVal) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#ff8800';
+      ctx.lineWidth = 2;
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // 折线填充区域
+      ctx.beginPath();
+      lineData.forEach((v, i) => {
+        const x = padding.left + barGroupW * i + barGroupW / 2;
+        const y = padding.top + chartH - (v / maxVal) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.lineTo(padding.left + barGroupW * (lineData.length - 1) + barGroupW / 2, padding.top + chartH);
+      ctx.lineTo(padding.left + barGroupW / 2, padding.top + chartH);
+      ctx.closePath();
+      const lineGrad = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartH);
+      lineGrad.addColorStop(0, 'rgba(255, 136, 0, 0.2)');
+      lineGrad.addColorStop(1, 'rgba(255, 136, 0, 0)');
+      ctx.fillStyle = lineGrad;
+      ctx.fill();
+
+      // 折线点
+      lineData.forEach((v, i) => {
+        const x = padding.left + barGroupW * i + barGroupW / 2;
+        const y = padding.top + chartH - (v / maxVal) * chartH;
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#ff8800';
+        ctx.fill();
+        ctx.strokeStyle = isDark ? '#232736' : '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+
+    function drawCharts() {
+      nextTick(() => {
+        // 迷你图
+        stats.forEach((s, i) => {
+          const colors = ['#1890ff', '#18a058', '#ff8800', '#e74c3c'];
+          drawSparkline('sparkline' + i, s.sparkData, colors[i]);
+        });
+        drawMainChart();
+      });
+    }
+
+    // 监听主题变化重绘图表
+    watch(theme, () => {
+      drawCharts();
+    });
+
+    // 窗口大小变化时重绘
+    let resizeTimer;
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(drawCharts, 100);
+    };
+
+    onMounted(() => {
+      drawCharts();
+      window.addEventListener('resize', handleResize);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+    });
+
+    // 全屏状态监听
+    document.addEventListener('fullscreenchange', () => {
+      isFullscreen.value = !!document.fullscreenElement;
+    });
+
+    return {
+      theme, darkTheme, toggleTheme,
+      collapsed, menuValue, menuOptions,
+      activeTab, tabs, tabActionOptions, handleTabAction, closeTab,
+      contentFullscreen, isFullscreen,
+      toggleFullscreen, toggleContentFullscreen, refreshContent,
+      fontSizeOptions, changeFontSize,
+      userDropdownOptions, handleUserAction,
+      notifications, stats, activities, departments, quickLinks,
+      drawCharts
+    };
+  }
+});
+
+// 手动注册组件
+app.component('n-config-provider', NConfigProvider);
+app.component('n-message-provider', NMessageProvider);
+app.component('n-input', NInput);
+app.component('n-icon', NIcon);
+app.component('n-menu', NMenu);
+app.component('n-breadcrumb', NBreadcrumb);
+app.component('n-breadcrumb-item', NBreadcrumbItem);
+app.component('n-avatar', NAvatar);
+app.component('n-popover', NPopover);
+app.component('n-dropdown', NDropdown);
+
+app.mount('#app');
+</script>
+</body>
+</html>
