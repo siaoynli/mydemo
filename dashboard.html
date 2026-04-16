@@ -616,7 +616,7 @@
             >
               <span v-html="tab.icon" style="display: flex; align-items: center;"></span>
               <span>{{ tab.label }}</span>
-              <span class="close-icon" v-if="tabs.length > 1" @click.stop="closeTab(tab.key)">
+              <span class="close-icon" v-if="tabs.length > 1 && tab.key !== 'dashboard'" @click.stop="closeTab(tab.key)">
                 <n-icon :size="12">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -922,20 +922,27 @@ const app = createApp({
     ];
 
     const handleTabAction = (key) => {
-      const idx = tabs.value.findIndex(t => t.key === activeTab.value);
+      const dash = tabDefinitions.dashboard;
       if (key === 'close-all') {
-        tabs.value = [{ ...tabDefinitions.dashboard }];
+        tabs.value = [{ ...dash }];
         activeTab.value = 'dashboard';
       } else if (key === 'close-others') {
-        tabs.value = [tabs.value[idx]];
+        const current = tabs.value.find(t => t.key === activeTab.value);
+        tabs.value = current?.key === 'dashboard'
+          ? [{ ...dash }]
+          : [{ ...dash }, { ...current }];
+        activeTab.value = current?.key || 'dashboard';
       } else if (key === 'close-left') {
-        tabs.value = tabs.value.slice(idx);
+        const idx = tabs.value.findIndex(t => t.key === activeTab.value);
+        tabs.value = idx === 0 ? [{ ...dash }] : [tabs.value[0], ...tabs.value.slice(idx)];
       } else if (key === 'close-right') {
+        const idx = tabs.value.findIndex(t => t.key === activeTab.value);
         tabs.value = tabs.value.slice(0, idx + 1);
       }
     };
 
     const closeTab = (key) => {
+      if (key === 'dashboard') return;
       if (tabs.value.length <= 1) return;
       const idx = tabs.value.findIndex(t => t.key === key);
       tabs.value.splice(idx, 1);
