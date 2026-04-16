@@ -339,9 +339,16 @@
       padding: 16px;
     }
 
-    /* 菜单折叠时图标居中 */
+    /* 菜单折叠时图标居中对齐 */
     .sidebar.collapsed .n-menu-item-content {
+      padding-left: 0 !important;
       justify-content: center !important;
+    }
+    .sidebar.collapsed .n-submenu .n-menu-item-content-header {
+      display: none !important;
+    }
+    .sidebar.collapsed .n-submenu-children {
+      display: none !important;
     }
   </style>
 </head>
