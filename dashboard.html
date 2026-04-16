@@ -99,6 +99,11 @@
       width: 64px;
       min-width: 64px;
     }
+    .sidebar.hidden {
+      width: 0;
+      min-width: 0;
+      overflow: hidden;
+    }
     .sidebar-header {
       height: 64px;
       display: flex;
@@ -119,6 +124,50 @@
     .sidebar-menu { flex: 1; overflow-y: auto; overflow-x: hidden; }
     .sidebar-menu::-webkit-scrollbar { width: 4px; }
     .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 2px; }
+
+    /* 侧边栏底部 */
+    .sidebar-footer {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      flex-shrink: 0;
+      border-top: 1px solid rgba(0,0,0,0.06);
+      gap: 8px;
+    }
+    .sidebar-footer .sidebar-footer-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity 0.3s;
+    }
+    .sidebar.collapsed .sidebar-footer-text { opacity: 0; width: 0; }
+    .sidebar-footer .sidebar-footer-collapse {
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      color: #666;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .sidebar-footer .sidebar-footer-collapse:hover { background: rgba(128,128,128,0.1); }
+    .sidebar-footer .sidebar-footer-collapse svg {
+      transition: transform 0.2s;
+    }
+    .sidebar-footer .sidebar-footer-collapse:hover svg {
+      transform: scale(1.2);
+    }
+    body.dark .sidebar-footer { border-top-color: rgba(255,255,255,0.06); }
+    body.dark .sidebar-footer .sidebar-footer-text { color: #e0e0e0; }
+    body.dark .sidebar-footer .sidebar-footer-collapse { color: #ccc; }
+    body.dark .sidebar-footer .sidebar-footer-collapse:hover { background: rgba(255,255,255,0.08); }
 
     /* 主体区域 */
     .main-wrapper {
@@ -835,7 +884,7 @@
     <n-message-provider>
       <div class="dashboard-layout">
         <!-- 左侧菜单 -->
-        <div class="sidebar" :class="{ collapsed: collapsed }">
+        <div class="sidebar" :class="{ collapsed: collapsed, hidden: !sidebarVisible || layoutFullscreen }">
           <!-- Logo -->
           <div class="sidebar-header">
             <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32">
@@ -864,6 +913,18 @@
               :collapsed-icon-size="20"
             />
           </div>
+          <!-- 侧边栏底部 -->
+          <div class="sidebar-footer" v-show="!layoutFullscreen">
+            <span class="sidebar-footer-text">Naive UI</span>
+            <div class="sidebar-footer-collapse" @click="collapsed = !collapsed" title="收缩菜单">
+              <svg v-if="!collapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>
+              </svg>
+            </div>
+          </div>
         </div>
 
         <!-- 主体 -->
@@ -871,15 +932,15 @@
           <n-scrollbar>
           <header class="layout-header">
             <!-- 顶部操作栏 -->
-            <div class="top-bar">
+            <div class="top-bar" v-show="!layoutFullscreen">
             <!-- 折叠按钮 -->
-            <div class="collapse-btn" @click="collapsed = !collapsed">
+            <div class="collapse-btn" @click="sidebarVisible = !sidebarVisible" :title="sidebarVisible ? '隐藏侧边栏' : '显示侧边栏'">
               <n-icon :size="20">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="!collapsed">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="sidebarVisible">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
                 </svg>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-else>
-                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/>
                 </svg>
               </n-icon>
             </div>
@@ -912,7 +973,7 @@
               </div>
 
               <!-- 主题切换 -->
-              <div class="action-btn" @click="toggleTheme">
+              <div class="action-btn" @click="toggleTheme" :title="theme === null ? '切换到暗色模式' : '切换到亮色模式'">
                 <n-icon :size="18">
                   <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -924,7 +985,7 @@
               </div>
 
               <!-- 全屏 -->
-              <div class="action-btn" @click="toggleFullscreen">
+              <div class="action-btn" @click="toggleFullscreen" :title="isFullscreen ? '退出全屏' : '全屏'">
                 <n-icon :size="18">
                   <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -938,7 +999,7 @@
               <!-- 消息通知 -->
               <n-popover trigger="click" placement="bottom-end" style="padding: 0; width: 320px;">
                 <template #trigger>
-                  <div class="action-btn">
+                  <div class="action-btn" title="消息通知">
                     <n-icon :size="18">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -1052,16 +1113,19 @@
               <n-dropdown :options="getTabActionOptions()" trigger="click" @select="handleTabAction">
                 <div class="tab-action-btn">
                   <n-icon :size="16">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="6 9 12 15 18 9"/>
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M8 6a2 2 0 1 1-4 0a2 2 0 0 1 4 0m0 6a2 2 0 1 1-4 0a2 2 0 0 1 4 0m-2 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4m8-14a2 2 0 1 1-4 0a2 2 0 0 1 4 0m-2 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4m2 4a2 2 0 1 1-4 0a2 2 0 0 1 4 0m4-10a2 2 0 1 0 0-4a2 2 0 0 0 0 4m2 4a2 2 0 1 1-4 0a2 2 0 0 1 4 0m-2 8a2 2 0 1 0 0-4a2 2 0 0 0 0 4"/>
                     </svg>
                   </n-icon>
                 </div>
               </n-dropdown>
-              <div class="tab-action-btn" @click="toggleContentFullscreen" title="内容全屏">
+              <div class="tab-action-btn" @click="toggleLayoutFullscreen" title="全屏">
                 <n-icon :size="16">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="!layoutFullscreen">
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-else>
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
                   </svg>
                 </n-icon>
               </div>
@@ -1334,6 +1398,8 @@ const app = createApp({
   setup() {
     const theme = ref(null);
     const collapsed = ref(false);
+    const sidebarVisible = ref(true);
+    const layoutFullscreen = ref(false);
     const activeTab = ref('dashboard');
     const scrollContainer = ref(null);
     const contentFullscreen = ref(false);
@@ -1617,6 +1683,7 @@ const app = createApp({
       const isLast = idx === tabs.value.length - 1;
       const isFirst = idx === 0;
       return [
+        { label: '内容全屏', key: 'content-fullscreen', icon: renderIcon('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>') },
         { label: '重新加载', key: 'refresh', icon: renderIcon('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>') },
         { label: '关闭当前', key: 'close-current', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'), disabled: isFirst },
         { label: '关闭全部', key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
@@ -1628,7 +1695,9 @@ const app = createApp({
 
     const handleTabAction = (key) => {
       const dash = tabDefinitions.dashboard;
-      if (key === 'close-current') {
+      if (key === 'content-fullscreen') {
+        toggleContentFullscreen();
+      } else if (key === 'close-current') {
         closeTab(activeTab.value);
       } else if (key === 'refresh') {
         message.success('刷新成功');
@@ -1675,6 +1744,10 @@ const app = createApp({
 
     const toggleContentFullscreen = () => {
       contentFullscreen.value = !contentFullscreen.value;
+    };
+
+    const toggleLayoutFullscreen = () => {
+      layoutFullscreen.value = !layoutFullscreen.value;
     };
 
     const refreshContent = () => {
@@ -2060,10 +2133,10 @@ const app = createApp({
 
     return {
       theme, darkTheme, toggleTheme,
-      collapsed, menuValue, menuOptions,
+      collapsed, sidebarVisible, layoutFullscreen, menuValue, menuOptions,
       activeTab, scrollContainer, scrollToTab, tabs, getTabActionOptions, handleTabAction, closeTab,
       contentFullscreen, isFullscreen,
-      toggleFullscreen, toggleContentFullscreen, refreshContent,
+      toggleFullscreen, toggleContentFullscreen, toggleLayoutFullscreen, refreshContent,
       handleUserAction,
       notificationActions, handleNotificationAction,
       notifications, stats, activities, departments, quickLinks, addQuickLink,
