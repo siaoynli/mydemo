@@ -78,37 +78,6 @@
     }
     body.dark .card-title { color: #e0e0e0; }
     .card-title .wave { font-size: 18px; }
-    .verification-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-bottom: 20px;
-      font-size: 13px;
-      color: #666;
-      transition: color 0.3s;
-    }
-    body.dark .verification-row { color: #999; }
-    .verification-row svg { flex-shrink: 0; }
-    .verification-link {
-      color: #666;
-      text-decoration: none;
-      margin-right: 8px;
-      cursor: pointer;
-      transition: color 0.3s;
-    }
-    .verification-link:hover { color: #18a058; }
-    body.dark .verification-link { color: #999; }
-    .verification-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 13px;
-      color: #999;
-      transition: color 0.3s;
-    }
-    body.dark .verification-right { color: #777; }
-    .verification-right svg { cursor: pointer; }
     .bottom-links {
       display: flex;
       align-items: center;
@@ -175,77 +144,10 @@
       border-color: #18a058;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    /* Custom slider for verification */
-    .custom-slider-wrapper {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      height: 40px;
-      border-radius: 8px;
-      background: linear-gradient(to right, #f0f4ff 0%, #e8f0fe 100%);
-      position: relative;
-      overflow: hidden;
-      border: 1px solid #e8e8e8;
-      user-select: none;
-      transition: background 0.3s, border-color 0.3s;
-    }
-    body.dark .custom-slider-wrapper {
-      background: linear-gradient(to right, #2a2e3d 0%, #252938 100%);
-      border-color: #3a3f50;
-    }
-    .custom-slider-track {
-      position: absolute;
-      left: 0;
-      top: 0;
-      height: 100%;
-      background: linear-gradient(to right, #e0ecff, #d0e0ff);
-      border-radius: 8px;
-      transition: none;
-    }
-    body.dark .custom-slider-track {
-      background: linear-gradient(to right, #3a5a8a, #2a4a7a);
-    }
-    .custom-slider-text {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      color: #999;
-      z-index: 1;
-      pointer-events: none;
-      transition: color 0.3s;
-    }
-    body.dark .custom-slider-text { color: #888; }
-    .custom-slider-thumb {
-      position: absolute;
-      left: 0;
-      top: 2px;
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-      cursor: grab;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      transition: box-shadow 0.2s, background 0.3s;
-    }
-    body.dark .custom-slider-thumb {
-      background: #3a3f50;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-    .custom-slider-thumb:active { cursor: grabbing; box-shadow: 0 2px 10px rgba(0,0,0,0.18); }
-    body.dark .custom-slider-thumb:active { box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
-    .custom-slider-thumb.done { background: #18a058; }
-    .custom-slider-text.success { color: #18a058; }
     .github-icon { fill: #333; transition: fill 0.3s; }
     body.dark .github-icon { fill: #e0e0e0; }
+    .verify-code-input input { letter-spacing: 4px; }
+    .verify-code-input input::placeholder { letter-spacing: normal; }
   </style>
 </head>
 <body>
@@ -273,29 +175,63 @@
 
           <!-- Tabs -->
           <n-tabs type="segment" size="small" v-model:value="activeTab" style="margin-bottom: 20px;">
-            <n-tab-pane name="password" tab="密码"></n-tab-pane>
-            <n-tab-pane name="phone" tab="手机号"></n-tab-pane>
+            <n-tab-pane name="password" tab="验证码"></n-tab-pane>
             <n-tab-pane name="qrcode" tab="二维码"></n-tab-pane>
           </n-tabs>
 
           <!-- Password Form -->
           <template v-if="activeTab === 'password'">
-            <!-- Username -->
+            <!-- Phone -->
             <n-input
-              v-model:value="username"
-              placeholder="用户名 / 邮箱"
+              v-model:value="phone"
+              placeholder="请输入手机号码"
               size="large"
               round
+              class="verify-code-input"
+              maxlength="11"
               style="margin-bottom: 12px;"
+              @input="phone = phone.replace(/\D/g, '')"
             >
               <template #prefix>
                 <n-icon :size="18" color="#999">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
                   </svg>
                 </n-icon>
               </template>
             </n-input>
+
+            <!-- Verify Code + Send Button -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              <n-input
+                v-model:value="verifyCode"
+                placeholder="验证码"
+                size="large"
+                round
+                class="verify-code-input"
+                style="flex: 1;"
+                maxlength="6"
+                @input="verifyCode = verifyCode.replace(/\D/g, '')"
+              >
+                <template #prefix>
+                  <n-icon :size="18" color="#999">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </n-icon>
+                </template>
+              </n-input>
+              <n-button
+                size="large"
+                round
+                style="white-space: nowrap; flex-shrink: 0; min-width: 110px;"
+                :loading="isSending"
+                :disabled="countdown > 0"
+                @click="sendCode"
+              >
+                {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
+              </n-button>
+            </div>
 
             <!-- Password -->
             <n-input
@@ -304,8 +240,7 @@
               placeholder="请输入密码"
               size="large"
               round
-              show-password-on="mousedown"
-              style="margin-bottom: 4px;"
+              style="margin-bottom: 20px;"
             >
               <template #prefix>
                 <n-icon :size="18" color="#999">
@@ -314,55 +249,17 @@
                   </svg>
                 </n-icon>
               </template>
+              <template #suffix>
+                <n-icon :size="18" color="#999" style="cursor: pointer;" @click="showPassword = !showPassword">
+                  <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.04 18.04 0 0 1 .95-1.95"/><path d="M1 1l22 22"/><path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
+                  </svg>
+                </n-icon>
+              </template>
             </n-input>
-
-            <!-- Verification -->
-            <div class="verification-row">
-              <n-icon :size="16" color="#18a058">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </n-icon>
-              <a class="verification-link">安全验证</a>
-              <span class="verification-right">
-                <n-icon :size="16">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-                  </svg>
-                </n-icon>
-                <span>图形验证</span>
-              </span>
-            </div>
-
-            <!-- Custom Slider Verification -->
-            <div
-              class="custom-slider-wrapper"
-              @mousedown="startDrag"
-              @touchstart="startDrag"
-            >
-              <div
-                class="custom-slider-track"
-                :style="{ width: sliderPercent + '%' }"
-              ></div>
-              <div class="custom-slider-text" :class="{ success: sliderDone }">
-                <template v-if="!sliderDone">拖动滑块完成安全验证</template>
-                <template v-else>验证成功</template>
-              </div>
-              <div
-                class="custom-slider-thumb"
-                :class="{ done: sliderDone }"
-                :style="{ left: sliderPercent + '%' }"
-              >
-                <n-icon :size="18" :color="sliderDone ? '#fff' : '#999'">
-                  <svg v-if="!sliderDone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="9 18 15 12 9 6"/>
-                  </svg>
-                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </n-icon>
-              </div>
-            </div>
 
             <!-- Login Button -->
             <n-button
@@ -370,7 +267,8 @@
               size="large"
               block
               round
-              :disabled="!sliderDone"
+              :loading="isLoggingIn"
+              :disabled="isLoggingIn"
               @click="handleLogin"
             >
               登 录
@@ -405,42 +303,6 @@
             </div>
           </template>
 
-          <!-- Phone Form -->
-          <template v-else-if="activeTab === 'phone'">
-            <n-input
-              v-model:value="phone"
-              placeholder="请输入手机号"
-              size="large"
-              round
-              style="margin-bottom: 12px;"
-            >
-              <template #prefix>
-                <n-icon :size="18" color="#999">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-                  </svg>
-                </n-icon>
-              </template>
-            </n-input>
-            <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-              <n-input
-                v-model:value="verifyCode"
-                placeholder="验证码"
-                size="large"
-                round
-              />
-              <n-button
-                size="large"
-                round
-                :disabled="countdown > 0"
-                @click="sendCode"
-              >
-                {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
-              </n-button>
-            </div>
-            <n-button type="primary" size="large" block round @click="handleLogin">登 录</n-button>
-          </template>
-
           <!-- QR Code -->
           <template v-else>
             <div style="text-align: center; padding: 20px 0;">
@@ -464,101 +326,73 @@
 const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
 const {
   NConfigProvider, NMessageProvider, NButton, NInput, NTabs, NTabPane,
-  NIcon, NDivider, NText, darkTheme
+  NIcon, NDivider, NText, darkTheme, createDiscreteApi
 } = naive;
+
+const { message } = createDiscreteApi(['message']);
 
 const app = createApp({
   setup() {
     const theme = ref(null);
     const activeTab = ref('password');
-    const username = ref('');
-    const password = ref('');
-    const showPassword = ref(false);
     const phone = ref('');
     const verifyCode = ref('');
     const countdown = ref(0);
-
-    // Slider verification
-    const sliderPercent = ref(0);
-    const sliderDone = ref(false);
-    let isDragging = false;
-    let startX = 0;
-    let wrapperWidth = 0;
+    const password = ref('');
+    const showPassword = ref(false);
+    const isSending = ref(false);
+    const isLoggingIn = ref(false);
 
     const toggleTheme = () => {
       theme.value = theme.value === null ? darkTheme : null;
       document.body.classList.toggle('dark', theme.value !== null);
     };
 
-    const startDrag = (e) => {
-      if (sliderDone.value) return;
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      isDragging = true;
-      startX = clientX;
-      const wrapper = e.currentTarget;
-      wrapperWidth = wrapper.offsetWidth;
-
-      const onMove = (ev) => {
-        if (!isDragging) return;
-        const cx = ev.touches ? ev.touches[0].clientX : ev.clientX;
-        let diff = cx - startX;
-        let pct = Math.max(0, Math.min(100, (diff / wrapperWidth) * 100));
-        sliderPercent.value = pct;
-      };
-      const onEnd = () => {
-        isDragging = false;
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onEnd);
-        document.removeEventListener('touchmove', onMove);
-        document.removeEventListener('touchend', onEnd);
-        if (sliderPercent.value >= 95) {
-          sliderDone.value = true;
-          sliderPercent.value = 100;
-        } else {
-          sliderPercent.value = 0;
-        }
-      };
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onEnd);
-      document.addEventListener('touchmove', onMove);
-      document.addEventListener('touchend', onEnd);
-    };
-
     const handleLogin = () => {
+      if (isLoggingIn.value) return;
+      isLoggingIn.value = true;
+      setTimeout(() => {
+        isLoggingIn.value = false;
+      }, 1500);
+
       if (activeTab.value === 'password') {
-        if (!username.value) {
-          window.$message?.warning('请输入用户名');
-          return;
-        }
-        if (!password.value) {
-          window.$message?.warning('请输入密码');
-          return;
-        }
-        if (!sliderDone.value) {
-          window.$message?.warning('请完成安全验证');
-          return;
-        }
-      }
-      if (activeTab.value === 'phone') {
         if (!phone.value) {
-          window.$message?.warning('请输入手机号');
+          message.warning('请输入手机号码');
+          return;
+        }
+        if (!/^1[3-9]\d{9}$/.test(phone.value)) {
+          message.warning('请输入正确的手机号码');
           return;
         }
         if (!verifyCode.value) {
-          window.$message?.warning('请输入验证码');
+          message.warning('请输入验证码');
+          return;
+        }
+        if (!password.value) {
+          message.warning('请输入密码');
           return;
         }
       }
-      window.$message?.success('登录成功！');
+      message.success('登录成功！');
     };
 
     const sendCode = () => {
+      if (isSending.value) return;
+      isSending.value = true;
+      setTimeout(() => {
+        isSending.value = false;
+      }, 1500);
+
       if (!phone.value) {
-        window.$message?.warning('请输入手机号');
+        message.warning('请输入手机号码');
+        return;
+      }
+      if (!/^1[3-9]\d{9}$/.test(phone.value)) {
+        message.warning('请输入正确的手机号码');
         return;
       }
       countdown.value = 60;
-      window.$message?.info('验证码已发送');
+      message.info('验证码已发送');
       const timer = setInterval(() => {
         countdown.value--;
         if (countdown.value <= 0) clearInterval(timer);
@@ -568,9 +402,9 @@ const app = createApp({
     return {
       theme, darkTheme, toggleTheme,
       activeTab,
-      username, password, showPassword,
       phone, verifyCode, countdown,
-      sliderPercent, sliderDone, startDrag,
+      password, showPassword,
+      isSending, isLoggingIn,
       handleLogin, sendCode
     };
   }
