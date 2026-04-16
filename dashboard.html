@@ -194,17 +194,100 @@
       justify-content: center;
     }
 
+    /* 通知列表 */
+    .notification-item {
+      border-bottom: 1px solid rgba(128,128,128,0.06);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .notification-item:last-child { border-bottom: none; }
+    .notification-item:hover { background: rgba(128,128,128,0.06); }
+    body.dark .notification-item { border-bottom-color: rgba(255,255,255,0.06); }
+    body.dark .notification-item:hover { background: rgba(255,255,255,0.06); }
+
+    /* 通知更多操作按钮 */
+    .notification-more-btn {
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      color: #999;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .notification-more-btn:hover { background: rgba(128,128,128,0.15); color: #333; }
+    body.dark .notification-more-btn { color: #888; }
+    body.dark .notification-more-btn:hover { background: rgba(255,255,255,0.1); color: #ccc; }
+
+    /* 用户卡片 */
+    .user-card { padding: 0; }
+    .user-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid rgba(128,128,128,0.1);
+    }
+    .user-card-info { display: flex; flex-direction: column; gap: 4px; }
+    .user-card-name { font-size: 15px; font-weight: 600; }
+    .user-card-phone { font-size: 12px; opacity: 0.5; }
+    body.dark .user-card-phone { opacity: 0.4; }
+
+    .user-card-menu { padding: 8px 0; }
+    .user-card-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 0 8px;
+      transition: background 0.2s;
+    }
+    .user-card-menu-item:hover { background: rgba(128,128,128,0.08); }
+    body.dark .user-card-menu-item:hover { background: rgba(255,255,255,0.06); }
+
+    .user-card-footer {
+      border-top: 1px solid rgba(128,128,128,0.1);
+      padding: 8px 0;
+    }
+    .user-card-logout {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 0 8px;
+      color: #e74c3c;
+      transition: background 0.2s;
+    }
+    .user-card-logout:hover { background: rgba(231,76,60,0.08); }
+    body.dark .user-card-logout { color: #ff6b6b; }
+    body.dark .user-card-logout:hover { background: rgba(255,107,107,0.1); }
+
     /* Tab 栏 */
     .tab-bar {
       height: 48px;
       display: flex;
       align-items: flex-end;
-      gap: 0;
       flex-shrink: 0;
-      overflow-x: auto;
+      overflow: hidden;
       padding: 0 10px;
     }
-    .tab-bar::-webkit-scrollbar { height: 0; }
+    .n-tabs-nav-scroll-wrapper {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: flex-end;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .n-tabs-nav-scroll-wrapper::-webkit-scrollbar { display: none; }
     .tab-item {
       height: 36px;
       padding: 11px 32px 11px 30px;
@@ -213,7 +296,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
@@ -223,7 +306,7 @@
       background: transparent;
       -webkit-mask-box-image: url("data:image/svg+xml,%3Csvg width='67' height='33' viewBox='0 0 67 33' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M27 0c-6.627 0-12 5.373-12 12v6c0 8.284-6.716 15-15 15h67c-8.284 0-15-6.716-15-15v-6c0-6.627-5.373-12-12-12H27z' fill='black'/%3E%3C/svg%3E") 12 27 15;
     }
-    .tab-item svg { width: 16px; height: 16px; transition: all 0.2s; }
+    .tab-item svg { width: 17px; height: 17px; transition: all 0.2s; }
     .tab-item:hover { background: #f0f0f0; }
     .tab-item.active {
       background: #e8f4ff;
@@ -463,6 +546,262 @@
       opacity: 0;
       display: none;
     }
+
+    /* 搜索模态框 */
+    .search-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 15vh;
+      backdrop-filter: blur(4px);
+      animation: searchFadeIn 0.2s ease;
+    }
+    @keyframes searchFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .search-modal {
+      width: 580px;
+      max-width: 90vw;
+      max-height: 70vh;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.06);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      animation: searchSlideIn 0.2s ease;
+    }
+    @keyframes searchSlideIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    body.dark .search-modal {
+      background: #232736;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      gap: 12px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    body.dark .search-input-wrapper {
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+    }
+    .search-input-wrapper svg {
+      color: #999;
+      flex-shrink: 0;
+    }
+    .search-input-field {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      background: transparent;
+      color: inherit;
+    }
+    body.dark .search-input-field { color: #e0e0e0; }
+    .search-input-field::placeholder { color: #bbb; }
+    body.dark .search-input-field::placeholder { color: #666; }
+    .search-kbd-shortcut {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: #999;
+      flex-shrink: 0;
+    }
+    .search-kbd-shortcut kbd {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      font-family: inherit;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    body.dark .search-kbd-shortcut kbd {
+      background: #1a1c28;
+      border-color: #333;
+      color: #999;
+    }
+    .search-results {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      max-height: 50vh;
+    }
+    .search-results::-webkit-scrollbar { width: 6px; }
+    .search-results::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 3px; }
+    .search-result-group {
+      margin-bottom: 8px;
+    }
+    .search-result-group-label {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .search-result-item:hover,
+    .search-result-item.active {
+      background: #f0f5ff;
+    }
+    body.dark .search-result-item:hover,
+    body.dark .search-result-item.active {
+      background: rgba(30, 136, 229, 0.15);
+    }
+    .search-result-item-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      color: #666;
+      flex-shrink: 0;
+    }
+    body.dark .search-result-item-icon {
+      background: #1a1c28;
+      color: #999;
+    }
+    .search-result-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .search-result-item-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .search-result-item-label mark {
+      background: #fff3cd;
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+    body.dark .search-result-item-label mark {
+      background: rgba(255, 243, 205, 0.2);
+    }
+    .search-result-item-path {
+      font-size: 12px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .search-result-item-arrow {
+      color: #ccc;
+      flex-shrink: 0;
+    }
+    .search-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: #999;
+    }
+    .search-empty svg {
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+    .search-footer {
+      padding: 10px 16px;
+      border-top: 1px solid rgba(0, 0, 0, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: #999;
+    }
+    body.dark .search-footer {
+      border-top-color: rgba(255, 255, 255, 0.06);
+    }
+    .search-footer-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .search-footer-item kbd {
+      padding: 1px 5px;
+      border-radius: 3px;
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      font-family: inherit;
+      font-size: 11px;
+    }
+    body.dark .search-footer-item kbd {
+      background: #1a1c28;
+      border-color: #333;
+      color: #999;
+    }
+
+    /* 搜索按钮样式 */
+    .search-button {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      transition: all 0.2s;
+      min-width: 140px;
+      gap: 12px;
+    }
+    .search-button:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    body.dark .search-button {
+      background: rgba(35, 39, 54, 0.8);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+    body.dark .search-button:hover {
+      background: rgba(35, 39, 54, 1);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .search-button-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(194, 194, 194, 1);
+    }
+    .search-button-text {
+      font-size: 14px;
+      color: #767c82;
+    }
+    body.dark .search-button-text {
+      color: #888;
+    }
+    .search-button-shortcut {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 14px;
+      color: rgba(194, 194, 194, 1);
+      opacity: 0.5;
+    }
+    .search-button-shortcut span {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    body.dark .search-button-shortcut {
+      color: #999;
+    }
   </style>
 </head>
 <body>
@@ -530,29 +869,21 @@
 
             <!-- 操作按钮 -->
             <div class="top-bar-actions">
-              <!-- 搜索 -->
-              <n-popover trigger="click" placement="bottom-end" :show-arrow="false">
-                <template #trigger>
-                  <div class="action-btn">
-                    <n-icon :size="18">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                      </svg>
-                    </n-icon>
-                  </div>
-                </template>
-                <div style="padding: 8px;">
-                  <n-input placeholder="搜索菜单、页面、功能..." size="small" round style="width: 260px;">
-                    <template #prefix>
-                      <n-icon :size="16">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                        </svg>
-                      </n-icon>
-                    </template>
-                  </n-input>
+              <!-- 搜索按钮 -->
+              <div class="search-button" @click="showSearch = true" title="搜索 (Ctrl+K)">
+                <div class="search-button-content">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="m21 21l-4.486-4.494M19 10.5a8.5 8.5 0 1 1-17 0a8.5 8.5 0 0 1 17 0Z"/>
+                  </svg>
+                  <span class="search-button-text">搜索</span>
                 </div>
-              </n-popover>
+                <div class="search-button-shortcut">
+                  <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M9 7V6H8V5H7v1h-.5v1H7v3.56a1.823 1.823 0 0 0 2.009 1.439L9 11a.9.9 0 0 1-.998-.495L8 7zm5-4h1v9h-1zm-1 3l-.085-.001c-.773 0-1.462.358-1.911.917L11 6.001h-1v6h1v-3a1.88 1.88 0 0 1 2.006-2l-.006-1zm-8.81 6C2.16 12 1 10.54 1 8s1.16-4 3.19-4h.029c.539 0 1.052.114 1.515.32l-.424.901a2.7 2.7 0 0 0-1.08-.22h-.042C2.38 5.001 2 6.631 2 8.001s.38 3 2.19 3c.497-.013.96-.145 1.366-.368l.444.898a3.94 3.94 0 0 1-1.806.47z"/>
+                  </svg>
+                  <span>k</span>
+                </div>
+              </div>
 
               <!-- 主题切换 -->
               <div class="action-btn" @click="toggleTheme">
@@ -578,17 +909,6 @@
                 </n-icon>
               </div>
 
-              <!-- 字体大小 -->
-              <n-dropdown :options="fontSizeOptions" trigger="click" @select="changeFontSize">
-                <div class="action-btn" title="字体大小">
-                  <n-icon :size="18">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>
-                    </svg>
-                  </n-icon>
-                </div>
-              </n-dropdown>
-
               <!-- 消息通知 -->
               <n-popover trigger="click" placement="bottom-end" style="padding: 0; width: 320px;">
                 <template #trigger>
@@ -601,46 +921,105 @@
                     <span class="badge">4</span>
                   </div>
                 </template>
-                <div style="padding: 12px;">
-                  <div style="font-weight: 600; margin-bottom: 12px;">消息通知</div>
-                  <div v-for="(msg, i) in notifications" :key="i" style="padding: 8px 0; border-bottom: 1px solid rgba(128,128,128,0.08); font-size: 13px;">
-                    <div style="font-weight: 500;">{{ msg.title }}</div>
-                    <div style="margin-top: 4px; opacity: 0.6;">{{ msg.time }}</div>
+                <div style="padding: 0;">
+                  <div style="font-weight: 600; font-size: 15px; padding: 12px 14px; border-bottom: 1px solid rgba(128,128,128,0.1); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                      </svg>
+                      消息通知
+                    </div>
+                    <n-dropdown :options="notificationActions" trigger="click" @select="handleNotificationAction" placement="bottom-end">
+                      <div class="notification-more-btn" title="更多操作">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                      </div>
+                    </n-dropdown>
+                  </div>
+                  <div v-for="(msg, i) in notifications" :key="i" class="notification-item">
+                    <div style="padding: 10px 14px;">
+                      <div style="font-weight: 500; font-size: 13px;">{{ msg.title }}</div>
+                      <div style="margin-top: 4px; font-size: 12px; opacity: 0.5;">{{ msg.time }}</div>
+                    </div>
                   </div>
                 </div>
               </n-popover>
 
-              <!-- 用户下拉 -->
-              <n-dropdown :options="userDropdownOptions" trigger="click" @select="handleUserAction">
-                <div class="action-btn" style="display: flex; align-items: center; gap: 8px; padding: 4px 8px;">
-                  <n-avatar :size="28" round style="background: #1890ff; color: #fff; font-size: 13px; font-weight: 600;">管</n-avatar>
-                  <div style="line-height: 1.2;">
-                    <div style="font-size: 13px; font-weight: 500;">管理员</div>
-                    <div style="font-size: 11px; opacity: 0.6;">超级管理员</div>
+              <!-- 用户下拉卡片 -->
+              <n-popover trigger="hover" placement="bottom-end" style="padding: 0; width: 300px;">
+                <template #trigger>
+                  <div class="action-btn" style="display: flex; align-items: center; gap: 8px; padding: 4px 8px;">
+                    <n-avatar :size="28" round style="background: #1890ff; color: #fff; font-size: 13px; font-weight: 600;">管</n-avatar>
+                    <div style="line-height: 1.2;">
+                      <div style="font-size: 13px; font-weight: 500;">管理员</div>
+                      <div style="font-size: 11px; opacity: 0.6;">超级管理员</div>
+                    </div>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0; opacity:0.5;">
+                      <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                  </div>
+                </template>
+                <div class="user-card">
+                  <!-- 头部：用户信息 -->
+                  <div class="user-card-header">
+                    <n-avatar :size="48" round style="background: #1890ff; color: #fff; font-size: 20px; font-weight: 600;">管</n-avatar>
+                    <div class="user-card-info">
+                      <div class="user-card-name">管理员</div>
+                      <n-tag size="small" type="success" round>超级管理员</n-tag>
+                      <div class="user-card-phone">138****8000</div>
+                    </div>
+                  </div>
+                  <!-- 中间：菜单 -->
+                  <div class="user-card-menu">
+                    <div class="user-card-menu-item" @click="handleUserAction('profile')">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
+                      <span>个人中心</span>
+                    </div>
+                    <div class="user-card-menu-item" @click="handleUserAction('settings')">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                      </svg>
+                      <span>修改密码</span>
+                    </div>
+                  </div>
+                  <!-- 底部：退出登录 -->
+                  <div class="user-card-footer">
+                    <div class="user-card-logout" @click="handleUserAction('logout')">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                      </svg>
+                      <span>退出登录</span>
+                    </div>
                   </div>
                 </div>
-              </n-dropdown>
+              </n-popover>
             </div>
           </div>
 
           <!-- Tab 栏 -->
           <div class="tab-bar">
-            <div
-              v-for="tab in tabs"
-              :key="tab.key"
-              class="tab-item"
-              :class="{ active: activeTab === tab.key }"
-              @click="activeTab = tab.key"
-            >
-              <span v-html="tab.icon" style="display: flex; align-items: center;"></span>
-              <span>{{ tab.label }}</span>
-              <span class="close-icon" v-if="tabs.length > 1 && tab.key !== 'dashboard'" @click.stop="closeTab(tab.key)">
-                <n-icon :size="12">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                </n-icon>
-              </span>
+            <div class="n-tabs-nav-scroll-wrapper" ref="scrollContainer">
+              <div
+                v-for="tab in tabs"
+                :key="tab.key"
+                class="tab-item"
+                :class="{ active: activeTab === tab.key }"
+                :data-tab-key="tab.key"
+                @click="activeTab = tab.key; scrollToTab(tab.key)"
+              >
+                <span v-html="tab.icon" style="display: flex; align-items: center;"></span>
+                <span>{{ tab.label }}</span>
+                <span class="close-icon" v-if="tabs.length > 1 && tab.key !== 'dashboard'" @click.stop="closeTab(tab.key)">
+                  <n-icon :size="12">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </n-icon>
+                </span>
+              </div>
             </div>
             <!-- Tab 操作按钮 -->
             <div class="tab-bar-actions">
@@ -824,6 +1203,68 @@
       </div>
     </n-message-provider>
   </n-config-provider>
+
+  <!-- 搜索模态框 -->
+  <teleport to="body">
+    <div class="search-overlay" v-if="showSearch" @click.self="showSearch = false">
+      <div class="search-modal">
+        <div class="search-input-wrapper">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            ref="searchInputRef"
+            class="search-input-field"
+            type="text"
+            v-model="searchQuery"
+            placeholder="搜索菜单、页面、功能..."
+            @input="onSearchInput"
+          />
+          <div class="search-kbd-shortcut">
+            <kbd>ESC</kbd> 退出
+          </div>
+        </div>
+        <div class="search-results">
+          <!-- 有搜索结果时 -->
+          <template v-if="filteredResults.length > 0">
+            <div class="search-result-group" v-for="(group, gi) in groupedResults" :key="gi">
+              <div class="search-result-group-label">{{ group.label }}</div>
+              <div
+                v-for="(item, ii) in group.items"
+                :key="item.key"
+                class="search-result-item"
+                :class="{ active: activeSearchIndex === getGlobalIndex(gi, ii) }"
+                @click="navigateTo(item)"
+                @mouseenter="activeSearchIndex = getGlobalIndex(gi, ii)"
+              >
+                <div class="search-result-item-icon" v-html="item.icon"></div>
+                <div class="search-result-item-info">
+                  <div class="search-result-item-label" v-html="highlightText(item.label)"></div>
+                  <div class="search-result-item-path">{{ item.path }}</div>
+                </div>
+                <svg class="search-result-item-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </div>
+            </div>
+          </template>
+          <!-- 无搜索结果 -->
+          <div v-else class="search-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <div>未找到匹配的结果</div>
+            <div style="font-size: 12px; margin-top: 4px;">试试其他关键词</div>
+          </div>
+        </div>
+        <div class="search-footer" v-if="filteredResults.length > 0">
+          <span class="search-footer-item"><kbd>↑↓</kbd> 导航</span>
+          <span class="search-footer-item"><kbd>↵</kbd> 选择</span>
+          <span class="search-footer-item"><kbd>esc</kbd> 关闭</span>
+        </div>
+      </div>
+    </div>
+  </teleport>
 </div>
 
 <script>
@@ -831,7 +1272,7 @@ const { createApp, ref, computed, onMounted, onUnmounted, nextTick, watch, h } =
 const {
   NConfigProvider, NMessageProvider, NInput,
   NIcon, NMenu, NBreadcrumb, NBreadcrumbItem, NAvatar,
-  NPopover, NDropdown, darkTheme, createDiscreteApi
+  NPopover, NDropdown, NTag, darkTheme, createDiscreteApi
 } = naive;
 
 const { message } = createDiscreteApi(['message']);
@@ -841,9 +1282,16 @@ const app = createApp({
     const theme = ref(null);
     const collapsed = ref(false);
     const activeTab = ref('dashboard');
+    const scrollContainer = ref(null);
     const contentFullscreen = ref(false);
     const isFullscreen = ref(false);
     const menuValue = ref('dashboard');
+
+    // 搜索相关
+    const showSearch = ref(false);
+    const searchQuery = ref('');
+    const searchInputRef = ref(null);
+    const activeSearchIndex = ref(0);
 
     // SVG 图标辅助 - 返回 VNode
     function createIcon(path) {
@@ -905,6 +1353,110 @@ const app = createApp({
       { label: '关于系统', key: 'about', icon: createIcon('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>') }
     ];
 
+    // 搜索数据源 - 扁平化所有可搜索的菜单项
+    const searchableItems = [
+      // 顶级菜单
+      { label: '仪表盘', key: 'dashboard', path: '首页 / 仪表盘', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>' },
+      { label: '分析页', key: 'analysis', path: '首页 / 分析页', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
+      { label: '工作台', key: 'workbench', path: '首页 / 工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' },
+      // 组件
+      { label: '基础组件', key: 'basic', path: '组件 / 基础组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '表单组件', key: 'form', path: '组件 / 表单组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '表格组件', key: 'table', path: '组件 / 表格组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '列表组件', key: 'list', path: '组件 / 列表组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '图表组件', key: 'chart', path: '组件 / 图表组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '地图组件', key: 'map', path: '组件 / 地图组件', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '三级-1', key: 'l3-1', path: '组件 / 三级菜单 / 三级-1', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      { label: '三级-2', key: 'l3-2', path: '组件 / 三级菜单 / 三级-2', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>' },
+      // 功能
+      { label: '权限管理', key: 'permission', path: '功能 / 权限管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      { label: '角色管理', key: 'role', path: '功能 / 角色管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      { label: '菜单管理', key: 'menu-mgmt', path: '功能 / 菜单管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      { label: '数据字典', key: 'dictionary', path: '功能 / 数据字典', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      { label: '系统日志', key: 'log', path: '功能 / 系统日志', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      { label: '系统监控', key: 'monitor', path: '功能 / 系统监控', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>' },
+      // 系统管理
+      { label: '用户管理', key: 'user', path: '系统管理 / 用户管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      { label: '部门管理', key: 'dept', path: '系统管理 / 部门管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      { label: '岗位管理', key: 'post', path: '系统管理 / 岗位管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      { label: '参数设置', key: 'config', path: '系统管理 / 参数设置', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      { label: '关于系统', key: 'about', path: '关于系统', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>' },
+      // 快捷入口
+      { label: '角色权限', key: 'rolePerm', path: '快捷入口 / 角色权限', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
+      { label: '系统配置', key: 'sysConfig', path: '快捷入口 / 系统配置', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      { label: '日志管理', key: 'logMgmt', path: '快捷入口 / 日志管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
+      { label: '监控中心', key: 'monitor', path: '快捷入口 / 监控中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
+      { label: '消息中心', key: 'msgCenter', path: '快捷入口 / 消息中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' },
+      { label: '文件管理', key: 'fileManage', path: '快捷入口 / 文件管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' },
+      { label: '订单列表', key: 'orderList', path: '快捷入口 / 订单列表', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
+      { label: '商品管理', key: 'productMgmt', path: '快捷入口 / 商品管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>' },
+      { label: '通知公告', key: 'notice', path: '快捷入口 / 通知公告', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>' },
+      { label: '日程安排', key: 'schedule', path: '快捷入口 / 日程安排', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+      { label: '团队管理', key: 'teamMgmt', path: '快捷入口 / 团队管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>' },
+      { label: '报表统计', key: 'report', path: '快捷入口 / 报表统计', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' },
+      { label: '接口管理', key: 'apiMgmt', path: '快捷入口 / 接口管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' },
+      { label: '任务中心', key: 'taskCenter', path: '快捷入口 / 任务中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' },
+      { label: '帮助文档', key: 'helpDoc', path: '快捷入口 / 帮助文档', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' }
+    ];
+
+    // 搜索过滤
+    const filteredResults = computed(() => {
+      if (!searchQuery.value.trim()) return [];
+      const q = searchQuery.value.toLowerCase().trim();
+      return searchableItems.filter(item =>
+        item.label.toLowerCase().includes(q) ||
+        item.path.toLowerCase().includes(q) ||
+        item.key.toLowerCase().includes(q)
+      );
+    });
+
+    // 分组搜索结果
+    const groupedResults = computed(() => {
+      const groups = {};
+      filteredResults.value.forEach(item => {
+        const groupLabel = item.path.split(' / ')[0];
+        if (!groups[groupLabel]) groups[groupLabel] = [];
+        groups[groupLabel].push(item);
+      });
+      return Object.entries(groups).map(([label, items]) => ({ label, items }));
+    });
+
+    // 获取全局索引
+    const getGlobalIndex = (groupIndex, itemIndex) => {
+      let idx = 0;
+      for (let g = 0; g < groupIndex; g++) {
+        idx += groupedResults.value[g].items.length;
+      }
+      return idx + itemIndex;
+    };
+
+    // 高亮搜索文本
+    const highlightText = (text) => {
+      if (!searchQuery.value.trim()) return text;
+      const q = searchQuery.value.trim();
+      const regex = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      return text.replace(regex, '<mark>$1</mark>');
+    };
+
+    // 搜索输入时重置活跃索引
+    const onSearchInput = () => {
+      activeSearchIndex.value = 0;
+    };
+
+    // 导航到选中的菜单项
+    const navigateTo = (item) => {
+      menuValue.value = item.key;
+      activeTab.value = item.key;
+      // 如果该 tab 不存在则添加
+      const exists = tabs.value.find(t => t.key === item.key);
+      if (!exists && tabDefinitions[item.key]) {
+        tabs.value.push({ ...tabDefinitions[item.key] });
+      }
+      showSearch.value = false;
+      searchQuery.value = '';
+      message.success(`已导航至：${item.label}`);
+    };
+
     // 主题切换
     const toggleTheme = () => {
       theme.value = theme.value === null ? darkTheme : null;
@@ -916,14 +1468,89 @@ const app = createApp({
     const tabDefinitions = {
       dashboard: { key: 'dashboard', label: '仪表盘', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>' },
       analysis: { key: 'analysis', label: '分析页', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
-      workbench: { key: 'workbench', label: '工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' }
+      workbench: { key: 'workbench', label: '工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' },
+      userMgmt: { key: 'userMgmt', label: '用户管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>' },
+      rolePerm: { key: 'rolePerm', label: '角色权限', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
+      sysConfig: { key: 'sysConfig', label: '系统配置', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>' },
+      dataDict: { key: 'dataDict', label: '数据字典', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>' },
+      logMgmt: { key: 'logMgmt', label: '日志管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
+      monitor: { key: 'monitor', label: '监控中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' },
+      msgCenter: { key: 'msgCenter', label: '消息中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' },
+      fileManage: { key: 'fileManage', label: '文件管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>' },
+      orderList: { key: 'orderList', label: '订单列表', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>' },
+      productMgmt: { key: 'productMgmt', label: '商品管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>' },
+      notice: { key: 'notice', label: '通知公告', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>' },
+      schedule: { key: 'schedule', label: '日程安排', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
+      teamMgmt: { key: 'teamMgmt', label: '团队管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>' },
+      report: { key: 'report', label: '报表统计', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' },
+      apiMgmt: { key: 'apiMgmt', label: '接口管理', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' },
+      taskCenter: { key: 'taskCenter', label: '任务中心', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>' },
+      helpDoc: { key: 'helpDoc', label: '帮助文档', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' }
     };
 
     const tabs = ref([
       { ...tabDefinitions.dashboard },
       { ...tabDefinitions.analysis },
-      { ...tabDefinitions.workbench }
+      { ...tabDefinitions.workbench },
+      { ...tabDefinitions.userMgmt },
+      { ...tabDefinitions.rolePerm },
+      { ...tabDefinitions.sysConfig },
+      { ...tabDefinitions.dataDict },
+      { ...tabDefinitions.logMgmt },
+      { ...tabDefinitions.monitor },
+      { ...tabDefinitions.msgCenter },
+      { ...tabDefinitions.fileManage },
+      { ...tabDefinitions.orderList },
+      { ...tabDefinitions.productMgmt },
+      { ...tabDefinitions.notice },
+      { ...tabDefinitions.schedule },
+      { ...tabDefinitions.teamMgmt },
+      { ...tabDefinitions.report },
+      { ...tabDefinitions.apiMgmt },
+      { ...tabDefinitions.taskCenter },
+      { ...tabDefinitions.helpDoc }
     ]);
+
+    // 平滑滚动到被点击的 Tab
+    const scrollToTab = (tabKey) => {
+      const container = scrollContainer.value;
+      if (!container) return;
+      const items = container.querySelectorAll('.tab-item');
+      let targetEl = null;
+      let targetIdx = -1;
+      items.forEach((item, i) => {
+        if (item.getAttribute('data-tab-key') === tabKey) {
+          targetEl = item;
+          targetIdx = i;
+        }
+      });
+      if (!targetEl) return;
+
+      const containerWidth = container.clientWidth;
+      const actionAreaWidth = 120;
+      const safeRight = containerWidth - actionAreaWidth;
+
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = targetEl.getBoundingClientRect();
+      const curScroll = container.scrollLeft;
+      // 计算元素在滚动容器中的绝对位置
+      const itemAbsLeft = itemRect.left - containerRect.left + curScroll;
+      const itemAbsRight = itemAbsLeft + itemRect.width;
+
+      if (itemAbsRight > curScroll + safeRight) {
+        // 右侧被操作按钮遮挡，向左滚动
+        container.scrollTo({ left: itemAbsRight - safeRight, behavior: 'smooth' });
+      } else if (itemAbsLeft < curScroll + 200) {
+        // 按钮在左侧 200px 范围内，向右滚动显示前一个 Tab
+        if (targetIdx > 0) {
+          const prevRect = items[targetIdx - 1].getBoundingClientRect();
+          const prevAbsLeft = prevRect.left - containerRect.left + curScroll - 10;
+          container.scrollTo({ left: Math.max(0, prevAbsLeft), behavior: 'smooth' });
+        } else {
+          container.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    };
 
     // 图标渲染辅助
     const renderIcon = (path) => () => h('svg', {
@@ -990,29 +1617,38 @@ const app = createApp({
       drawSparklines();
     };
 
-    // 字体大小
-    const fontSizeOptions = [
-      { label: '小', key: 'small' },
-      { label: '默认', key: 'default' },
-      { label: '大', key: 'large' }
+    // 通知下拉菜单
+    const { h } = Vue;
+    const notificationActions = [
+      {
+        label: '标记所有已读',
+        key: 'markAllRead',
+        icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', width: '16', height: '16' }, [
+          h('path', { d: 'M20 6L9 17l-5-5' })
+        ])
+      },
+      {
+        label: '删除已读消息',
+        key: 'deleteRead',
+        icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', width: '16', height: '16' }, [
+          h('path', { d: 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6' })
+        ])
+      }
     ];
-    const changeFontSize = (key) => {
-      const sizes = { small: '13px', default: '14px', large: '16px' };
-      document.documentElement.style.fontSize = sizes[key] || '14px';
-      message.success(`字体大小已切换为${key === 'small' ? '小' : key === 'large' ? '大' : '默认'}`);
+    const handleNotificationAction = (key) => {
+      if (key === 'markAllRead') {
+        message.success('已标记所有消息为已读');
+      } else if (key === 'deleteRead') {
+        message.info('已删除已读消息');
+      }
     };
 
     // 用户下拉
-    const userDropdownOptions = [
-      { label: '个人中心', key: 'profile' },
-      { label: '系统设置', key: 'settings' },
-      { label: '退出登录', key: 'logout' }
-    ];
     const handleUserAction = (key) => {
       if (key === 'logout') {
-        message.info('退出登录');
+        message.warning('退出登录');
       } else {
-        message.info(key === 'profile' ? '个人中心' : '系统设置');
+        message.info(key === 'profile' ? '个人中心' : '修改密码');
       }
     };
 
@@ -1293,11 +1929,55 @@ const app = createApp({
     onMounted(() => {
       drawCharts();
       window.addEventListener('resize', handleResize);
+      // 键盘快捷键：Ctrl+K 打开搜索
+      window.addEventListener('keydown', handleKeyDown);
     });
 
     onUnmounted(() => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(resizeTimer);
+      window.removeEventListener('keydown', handleKeyDown);
+    });
+
+    // 键盘事件处理
+    const handleKeyDown = (e) => {
+      // Ctrl+K 或 Cmd+K 打开搜索
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        showSearch.value = true;
+        nextTick(() => {
+          searchInputRef.value?.focus();
+        });
+        return;
+      }
+      // ESC 关闭搜索
+      if (e.key === 'Escape' && showSearch.value) {
+        showSearch.value = false;
+        searchQuery.value = '';
+        return;
+      }
+      // 搜索框打开时的上下导航
+      if (showSearch.value && filteredResults.value.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeSearchIndex.value = (activeSearchIndex.value + 1) % filteredResults.value.length;
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeSearchIndex.value = (activeSearchIndex.value - 1 + filteredResults.value.length) % filteredResults.value.length;
+        } else if (e.key === 'Enter' && filteredResults.value[activeSearchIndex.value]) {
+          e.preventDefault();
+          navigateTo(filteredResults.value[activeSearchIndex.value]);
+        }
+      }
+    };
+
+    // 监听搜索框显示，自动聚焦
+    watch(showSearch, (val) => {
+      if (val) {
+        nextTick(() => {
+          searchInputRef.value?.focus();
+        });
+      }
     });
 
     // 全屏状态监听
@@ -1308,13 +1988,17 @@ const app = createApp({
     return {
       theme, darkTheme, toggleTheme,
       collapsed, menuValue, menuOptions,
-      activeTab, tabs, tabActionOptions, handleTabAction, closeTab,
+      activeTab, scrollContainer, scrollToTab, tabs, tabActionOptions, handleTabAction, closeTab,
       contentFullscreen, isFullscreen,
       toggleFullscreen, toggleContentFullscreen, refreshContent,
-      fontSizeOptions, changeFontSize,
-      userDropdownOptions, handleUserAction,
+      handleUserAction,
+      notificationActions, handleNotificationAction,
       notifications, stats, activities, departments, quickLinks,
-      drawCharts
+      drawCharts,
+      // 搜索
+      showSearch, searchQuery, searchInputRef, activeSearchIndex,
+      filteredResults, groupedResults, getGlobalIndex, highlightText,
+      onSearchInput, navigateTo
     };
   }
 });
@@ -1330,6 +2014,7 @@ app.component('n-breadcrumb-item', NBreadcrumbItem);
 app.component('n-avatar', NAvatar);
 app.component('n-popover', NPopover);
 app.component('n-dropdown', NDropdown);
+app.component('n-tag', NTag);
 
 app.mount('#app');
 </script>
