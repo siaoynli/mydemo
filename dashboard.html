@@ -32,8 +32,7 @@
       background: #1a1c28;
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
-    body.dark .tab-item { color: #ccc; }
-    body.dark .tab-item svg { color: #ccc; }
+    body.dark .tab-item { color: #888; }
     body.dark .tab-item:hover { background: rgba(255,255,255,0.05); }
     body.dark .tab-item .close-icon:hover { background: rgba(255,255,255,0.1); }
     body.dark .tab-bar-actions .tab-action-btn { color: #ccc; }
@@ -197,18 +196,19 @@
 
     /* Tab 栏 */
     .tab-bar {
-      height: 44px;
+      height: 48px;
       display: flex;
       align-items: center;
       gap: 4px;
       flex-shrink: 0;
       overflow-x: auto;
+      padding: 0 4px;
     }
     .tab-bar::-webkit-scrollbar { height: 0; }
     .tab-item {
-      height: 32px;
-      padding: 0 12px;
-      border-radius: 6px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -216,24 +216,35 @@
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: background 0.2s;
+      transition: all 0.2s;
       user-select: none;
+      color: #666;
     }
-    .tab-item:hover { background: rgba(128,128,128,0.08); }
-    .tab-item.active { background: #e8f4ff; }
-    body.dark .tab-item.active { background: rgba(30, 136, 229, 0.2); }
+    .tab-item svg { width: 16px; height: 16px; transition: all 0.2s; }
+    .tab-item:hover { background: rgba(128,128,128,0.06); }
+    .tab-item.active {
+      background: #e8f4ff;
+      color: #1890ff;
+      font-weight: 500;
+    }
+    body.dark .tab-item { color: #888; }
+    body.dark .tab-item.active { background: rgba(30, 136, 229, 0.15); color: #4098fc; }
+    body.dark .tab-item svg { color: inherit; }
+    .tab-item.active svg { width: 18px !important; height: 18px !important; }
     .tab-item .close-icon {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 12px;
-      opacity: 0.5;
+      opacity: 0;
       transition: opacity 0.2s;
+      margin-left: 2px;
     }
-    .tab-item .close-icon:hover { opacity: 1; background: rgba(128,128,128,0.2); }
+    .tab-item:hover .close-icon { opacity: 0.5; }
+    .tab-item .close-icon:hover { opacity: 1 !important; background: rgba(0,0,0,0.1); }
+    body.dark .tab-item .close-icon:hover { background: rgba(255,255,255,0.1); }
     .tab-bar-actions {
       display: flex;
       align-items: center;
@@ -896,9 +907,9 @@ const app = createApp({
     // Tab 管理
     // Tab 定义（带图标）
     const tabDefinitions = {
-      dashboard: { key: 'dashboard', label: '仪表盘', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>' },
-      analysis: { key: 'analysis', label: '分析页', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
-      workbench: { key: 'workbench', label: '工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' }
+      dashboard: { key: 'dashboard', label: '仪表盘', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>' },
+      analysis: { key: 'analysis', label: '分析页', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' },
+      workbench: { key: 'workbench', label: '工作台', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>' }
     };
 
     const tabs = ref([
