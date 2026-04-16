@@ -406,11 +406,13 @@
       cursor: pointer;
       z-index: 10001;
       transition: all 0.2s;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      background: #2080f0;
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(32,128,240,0.3);
     }
-    .fullscreen-close:hover { background: rgba(0,0,0,0.08); }
-    body.dark .fullscreen-close { color: #e0e0e0; box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
-    body.dark .fullscreen-close:hover { background: rgba(255,255,255,0.15); }
+    .fullscreen-close:hover { background: #4098fc; box-shadow: 0 4px 16px rgba(32,128,240,0.4); }
+    body.dark .fullscreen-close { box-shadow: 0 2px 12px rgba(32,128,240,0.4); }
+    body.dark .fullscreen-close:hover { background: #4098fc; box-shadow: 0 4px 16px rgba(32,128,240,0.5); }
 
     /* 菜单折叠时图标居中 */
     .sidebar.collapsed .n-menu-item-content {
