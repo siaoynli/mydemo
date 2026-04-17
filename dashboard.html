@@ -244,6 +244,21 @@
       position: relative;
     }
     .top-bar-actions .action-btn:hover { background: rgba(128,128,128,0.1); }
+    .top-bar-actions .lang-btn {
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.2s;
+      font-size: 13px;
+      font-weight: 500;
+      color: inherit;
+    }
+    .top-bar-actions .lang-btn:hover { background: rgba(128,128,128,0.1); }
+    body.dark .top-bar-actions .lang-btn:hover { background: rgba(255,255,255,0.08); }
     .top-bar-actions .action-btn svg {
       transition: transform 0.2s;
     }
@@ -914,7 +929,7 @@
           <!-- 侧边栏底部 -->
           <div class="sidebar-footer" v-show="!layoutFullscreen">
             <span class="sidebar-footer-text">Naive UI</span>
-            <div class="sidebar-footer-collapse" @click="collapsed = !collapsed" title="收缩菜单">
+            <div class="sidebar-footer-collapse" @click="collapsed = !collapsed" :title="collapsed ? t('expandSidebar') : t('collapseSidebar')">
               <svg v-if="!collapsed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                 <polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>
               </svg>
@@ -932,7 +947,7 @@
             <!-- 顶部操作栏 -->
             <div class="top-bar" v-show="!layoutFullscreen">
             <!-- 折叠按钮 -->
-            <div class="collapse-btn" @click="sidebarVisible = !sidebarVisible" :title="sidebarVisible ? '隐藏侧边栏' : '显示侧边栏'">
+            <div class="collapse-btn" @click="sidebarVisible = !sidebarVisible" :title="sidebarVisible ? t('hideSidebar') : t('showSidebar')">
               <n-icon :size="20">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="sidebarVisible">
                   <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/>
@@ -946,7 +961,7 @@
             <!-- 面包屑 -->
             <div class="breadcrumb-area">
               <n-breadcrumb separator="/">
-                <n-breadcrumb-item>首页</n-breadcrumb-item>
+                <n-breadcrumb-item>{{ t('home') }}</n-breadcrumb-item>
                 <n-breadcrumb-item>分析页</n-breadcrumb-item>
                 <n-breadcrumb-item>仪表盘</n-breadcrumb-item>
               </n-breadcrumb>
@@ -955,12 +970,12 @@
             <!-- 操作按钮 -->
             <div class="top-bar-actions">
               <!-- 搜索按钮 -->
-              <div class="search-button" @click="showSearch = true" title="搜索 (Ctrl+K)">
+              <div class="search-button" @click="showSearch = true" :title="t('searchShortcut')">
                 <div class="search-button-content">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <path d="m21 21l-4.486-4.494M19 10.5a8.5 8.5 0 1 1-17 0a8.5 8.5 0 0 1 17 0Z"/>
                   </svg>
-                  <span class="search-button-text">搜索</span>
+                  <span class="search-button-text">{{ t('search') }}</span>
                 </div>
                 <div class="search-button-shortcut">
                   <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
@@ -970,8 +985,27 @@
                 </div>
               </div>
 
+              <!-- 语言切换 -->
+              <div class="lang-btn" @click="handleLangClick" :title="t('selectLanguage')">
+                <n-icon :size="16">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </n-icon>
+                {{ locale === 'zh' ? t('langZh') : t('langEn') }}
+              </div>
+              <n-dropdown
+                placement="bottom-end"
+                :show="showLangMenu"
+                :options="langOptions"
+                :x="langMenuX"
+                :y="langMenuY"
+                @select="handleLangSelect"
+                @clickoutside="showLangMenu = false"
+              />
+
               <!-- 主题切换 -->
-              <div class="action-btn" @click="toggleTheme" :title="theme === null ? '切换到暗色模式' : '切换到亮色模式'">
+              <div class="action-btn" @click="toggleTheme" :title="theme === null ? t('toDark') : t('toLight')">
                 <n-icon :size="18">
                   <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
@@ -983,7 +1017,7 @@
               </div>
 
               <!-- 全屏 -->
-              <div class="action-btn" @click="toggleFullscreen" :title="isFullscreen ? '退出全屏' : '全屏'">
+              <div class="action-btn" @click="toggleFullscreen" :title="isFullscreen ? t('exitFullscreen') : t('fullscreen')">
                 <n-icon :size="18">
                   <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -997,7 +1031,7 @@
               <!-- 消息通知 -->
               <n-popover trigger="click" placement="bottom-end" style="padding: 0; width: 320px;">
                 <template #trigger>
-                  <div class="action-btn" title="消息通知">
+                  <div class="action-btn" :title="t('notification')">
                     <n-icon :size="18">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -1012,7 +1046,7 @@
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                       </svg>
-                      消息通知
+                      {{ t('notification') }}
                     </div>
                     <n-dropdown :options="notificationActions" trigger="click" @select="handleNotificationAction" placement="bottom-end">
                       <div class="notification-more-btn" title="更多操作">
@@ -1035,10 +1069,10 @@
               <n-popover trigger="hover" placement="bottom-end" style="padding: 0; width: 300px;">
                 <template #trigger>
                   <div class="action-btn" style="display: flex; align-items: center; gap: 8px; padding: 4px 8px;">
-                    <n-avatar :size="28" round style="background: #1890ff; color: #fff; font-size: 13px; font-weight: 600;">管</n-avatar>
+                    <n-avatar :size="28" round style="background: #1890ff; color: #fff; font-size: 13px; font-weight: 600;">{{ t('admin').charAt(0) }}</n-avatar>
                     <div style="line-height: 1.2;">
-                      <div style="font-size: 13px; font-weight: 500;">管理员</div>
-                      <div style="font-size: 11px; opacity: 0.6;">超级管理员</div>
+                      <div style="font-size: 13px; font-weight: 500;">{{ t('admin') }}</div>
+                      <div style="font-size: 11px; opacity: 0.6;">{{ t('superAdmin') }}</div>
                     </div>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0; opacity:0.5;">
                       <path d="M6 9l6 6 6-6"/>
@@ -1048,10 +1082,10 @@
                 <div class="user-card">
                   <!-- 头部：用户信息 -->
                   <div class="user-card-header">
-                    <n-avatar :size="48" round style="background: #1890ff; color: #fff; font-size: 20px; font-weight: 600;">管</n-avatar>
+                    <n-avatar :size="48" round style="background: #1890ff; color: #fff; font-size: 20px; font-weight: 600;">{{ t('admin').charAt(0) }}</n-avatar>
                     <div class="user-card-info">
-                      <div class="user-card-name">管理员</div>
-                      <n-tag size="small" type="success" round>超级管理员</n-tag>
+                      <div class="user-card-name">{{ t('admin') }}</div>
+                      <n-tag size="small" type="success" round>{{ t('superAdmin') }}</n-tag>
                       <div class="user-card-phone">138****8000</div>
                     </div>
                   </div>
@@ -1061,13 +1095,13 @@
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                       </svg>
-                      <span>个人中心</span>
+                      <span>{{ t('profile') }}</span>
                     </div>
                     <div class="user-card-menu-item" @click="handleUserAction('settings')">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
                       </svg>
-                      <span>修改密码</span>
+                      <span>{{ t('changePassword') }}</span>
                     </div>
                   </div>
                   <!-- 底部：退出登录 -->
@@ -1076,7 +1110,7 @@
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
                       </svg>
-                      <span>退出登录</span>
+                      <span>{{ t('logout') }}</span>
                     </div>
                   </div>
                 </div>
@@ -1117,7 +1151,7 @@
                   </n-icon>
                 </div>
               </n-dropdown>
-              <div class="tab-action-btn" @click="toggleLayoutFullscreen" title="全屏">
+              <div class="tab-action-btn" @click="toggleLayoutFullscreen" :title="t('fullscreen')">
                 <n-icon :size="16">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" v-if="!layoutFullscreen">
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
@@ -1127,7 +1161,7 @@
                   </svg>
                 </n-icon>
               </div>
-              <div class="tab-action-btn" @click="refreshContent" title="刷新">
+              <div class="tab-action-btn" @click="refreshContent" :title="t('refresh')">
                 <n-icon :size="16">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -1141,7 +1175,7 @@
 
           <!-- 主体内容 -->
           <div class="main-content" :class="{ fullscreen: contentFullscreen }">
-            <div v-if="contentFullscreen" class="fullscreen-close" @click="toggleContentFullscreen" title="退出全屏">
+            <div v-if="contentFullscreen" class="fullscreen-close" @click="toggleContentFullscreen" :title="t('exitFullscreen')">
               <n-icon :size="20">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -1298,10 +1332,10 @@
                               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                             </svg>
                           </div>
-                          <span class="quick-link-label">添加</span>
+                          <span class="quick-link-label">{{ t('addShortcut').substring(0, locale === 'zh' ? 2 : 3) }}</span>
                         </div>
                       </template>
-                      添加快捷入口
+                      {{ t('addShortcut') }}
                     </n-popover>
                   </div>
                 </div>
@@ -1310,7 +1344,7 @@
 
             <!-- 底部 -->
             <div class="footer">
-              Copyright © 2026 Naive Admin. All rights reserved.
+              {{ t('copyright') }}
             </div>
           </div>
           </n-scrollbar>
@@ -1330,11 +1364,11 @@
             class="search-input-field"
             type="text"
             v-model="searchQuery"
-            placeholder="搜索菜单、页面、功能..."
+            :placeholder="t('searchPlaceholder')"
             @input="onSearchInput"
           />
           <div class="search-kbd-shortcut">
-            <kbd>ESC</kbd> 退出
+            <kbd>ESC</kbd> {{ t('searchExit') }}
           </div>
         </div>
         <div class="search-results">
@@ -1366,14 +1400,14 @@
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
-            <div>未找到匹配的结果</div>
-            <div style="font-size: 12px; margin-top: 4px;">试试其他关键词</div>
+            <div>{{ t('searchNoResult') }}</div>
+            <div style="font-size: 12px; margin-top: 4px;">{{ t('searchTryOther') }}</div>
           </div>
         </div>
         <div class="search-footer" v-if="filteredResults.length > 0">
-          <span class="search-footer-item"><kbd>↑↓</kbd> 导航</span>
-          <span class="search-footer-item"><kbd>↵</kbd> 选择</span>
-          <span class="search-footer-item"><kbd>esc</kbd> 关闭</span>
+          <span class="search-footer-item"><kbd>↑↓</kbd> {{ t('searchNavigate') }}</span>
+          <span class="search-footer-item"><kbd>↵</kbd> {{ t('searchSelect') }}</span>
+          <span class="search-footer-item"><kbd>esc</kbd> {{ t('searchClose') }}</span>
         </div>
       </div>
     </div>
@@ -1382,7 +1416,7 @@
 <div id="app"></div>
 
 <script>
-const { createApp, ref, computed, onMounted, onUnmounted, nextTick, watch, h } = Vue;
+const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick, watch, h } = Vue;
 const {
   NConfigProvider, NMessageProvider, NInput,
   NIcon, NMenu, NBreadcrumb, NBreadcrumbItem, NAvatar,
@@ -1418,6 +1452,40 @@ const DashboardContent = {
     const message = useMessage();
     const dialog = useDialog();
     const isDark = computed(() => props.theme !== null);
+    const locale = ref('zh');
+    const showLangMenu = ref(false);
+    const langMenuX = ref(0);
+    const langMenuY = ref(0);
+    const i18n = reactive({ zh: {}, en: {} });
+
+    const loadI18n = async () => {
+      const [zhRes, enRes] = await Promise.all([
+        fetch('i18n/zh.json').then(r => r.json()),
+        fetch('i18n/en.json').then(r => r.json())
+      ]);
+      i18n.zh = zhRes;
+      i18n.en = enRes;
+    };
+    loadI18n();
+
+    const t = (key) => (i18n[locale.value] && i18n[locale.value][key]) || key;
+
+    const langOptions = computed(() => [
+      { label: i18n.zh.langZh || '简体中文', key: 'zh' },
+      { label: i18n.en.langEn || 'English', key: 'en' }
+    ]);
+
+    const handleLangClick = (e) => {
+      langMenuX.value = e.clientX;
+      langMenuY.value = e.clientY;
+      showLangMenu.value = true;
+    };
+
+    const handleLangSelect = (key) => {
+      locale.value = key;
+      showLangMenu.value = false;
+    };
+
     const collapsed = ref(false);
     const sidebarVisible = ref(true);
     const layoutFullscreen = ref(false);
@@ -1594,7 +1662,7 @@ const DashboardContent = {
       }
       showSearch.value = false;
       searchQuery.value = '';
-      message.success(`已导航至：${item.label}`);
+      message.success(t('navigated') + item.label);
     };
 
     // 主题切换
@@ -1703,13 +1771,13 @@ const DashboardContent = {
       const isLast = idx === tabs.value.length - 1;
       const isFirst = idx === 0;
       return [
-        { label: '内容全屏', key: 'content-fullscreen', icon: renderIcon('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>') },
-        { label: '重新加载', key: 'refresh', icon: renderIcon('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>') },
-        { label: '关闭当前', key: 'close-current', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'), disabled: isFirst },
-        { label: '关闭全部', key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
-        { label: '关闭其他', key: 'close-others', icon: renderIcon('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><line x1="12" y1="12" x2="17" y2="17"/><line x1="17" y1="12" x2="12" y2="17"/>') },
-        { label: '关闭左侧', key: 'close-left', icon: renderIcon('<polyline points="15 18 9 12 15 6"/>'), disabled: isFirst },
-        { label: '关闭右侧', key: 'close-right', icon: renderIcon('<polyline points="9 18 15 12 9 6"/>'), disabled: isLast }
+        { label: t('contentFullscreen'), key: 'content-fullscreen', icon: renderIcon('<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>') },
+        { label: t('refresh'), key: 'refresh', icon: renderIcon('<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>') },
+        { label: t('closeCurrent'), key: 'close-current', icon: renderIcon('<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'), disabled: isFirst },
+        { label: t('closeAll'), key: 'close-all', icon: renderIcon('<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') },
+        { label: t('closeOthers'), key: 'close-others', icon: renderIcon('<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><line x1="12" y1="12" x2="17" y2="17"/><line x1="17" y1="12" x2="12" y2="17"/>') },
+        { label: t('closeLeft'), key: 'close-left', icon: renderIcon('<polyline points="15 18 9 12 15 6"/>'), disabled: isFirst },
+        { label: t('closeRight'), key: 'close-right', icon: renderIcon('<polyline points="9 18 15 12 9 6"/>'), disabled: isLast }
       ];
     };
 
@@ -1720,7 +1788,7 @@ const DashboardContent = {
       } else if (key === 'close-current') {
         closeTab(activeTab.value);
       } else if (key === 'refresh') {
-        message.success('刷新成功');
+        message.success(t('refreshSuccess'));
         drawCharts();
         drawSparklines();
       } else if (key === 'close-all') {
@@ -1771,34 +1839,34 @@ const DashboardContent = {
     };
 
     const refreshContent = () => {
-      message.success('刷新成功');
+      message.success(t('refreshSuccess'));
       drawCharts();
       drawSparklines();
     };
 
     // 通知下拉菜单
     const { h } = Vue;
-    const notificationActions = [
+    const notificationActions = computed(() => [
       {
-        label: '标记所有已读',
+        label: t('markAllRead'),
         key: 'markAllRead',
         icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', width: '16', height: '16' }, [
           h('path', { d: 'M20 6L9 17l-5-5' })
         ])
       },
       {
-        label: '删除已读消息',
+        label: t('deleteRead'),
         key: 'deleteRead',
         icon: () => h('svg', { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', width: '16', height: '16' }, [
           h('path', { d: 'M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6' })
         ])
       }
-    ];
+    ]);
     const handleNotificationAction = (key) => {
       if (key === 'markAllRead') {
-        message.success('已标记所有消息为已读');
+        message.success(t('markAllReadSuccess'));
       } else if (key === 'deleteRead') {
-        message.info('已删除已读消息');
+        message.info(t('deleteReadSuccess'));
       }
     };
 
@@ -1806,16 +1874,16 @@ const DashboardContent = {
     const handleUserAction = (key) => {
       if (key === 'logout') {
         dialog.warning({
-          title: '退出登录',
-          content: '确定要退出登录吗？',
-          positiveText: '确定',
-          negativeText: '取消',
+          title: t('logoutConfirmTitle'),
+          content: t('logoutConfirmContent'),
+          positiveText: t('confirm'),
+          negativeText: t('cancel'),
           onPositiveClick: () => {
             window.location.href = 'login.html';
           }
         });
       } else {
-        message.info(key === 'profile' ? '个人中心' : '修改密码');
+        message.info(key === 'profile' ? t('profile') : t('changePassword'));
       }
     };
 
@@ -2151,7 +2219,7 @@ const DashboardContent = {
 
     // 添加快捷入口
     function addQuickLink() {
-      message.info('点击了添加快捷入口');
+      message.info(t('addShortcut'));
     }
 
     // 全屏状态监听
@@ -2161,6 +2229,9 @@ const DashboardContent = {
 
     return {
       theme: props.theme, darkTheme: props.darkTheme, toggleTheme,
+      locale, t, i18n,
+      langOptions, showLangMenu, langMenuX, langMenuY,
+      handleLangClick, handleLangSelect,
       collapsed, sidebarVisible, layoutFullscreen, menuValue, menuOptions,
       activeTab, scrollContainer, scrollToTab, tabs, getTabActionOptions, handleTabAction, closeTab,
       contentFullscreen, isFullscreen,
