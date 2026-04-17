@@ -151,219 +151,239 @@
   </style>
 </head>
 <body>
-<div id="app">
-  <n-config-provider :theme="theme">
-    <n-message-provider>
-      <div class="page-wrapper">
-        <!-- Header -->
-        <div class="page-header" style="justify-content: flex-end;">
-          <button class="theme-toggle" @click="toggleTheme">
-            <n-icon :size="18">
-              <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-              </svg>
-              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+<script type="text/html" id="login-template">
+  <div class="page-wrapper">
+    <!-- Header -->
+    <div class="page-header" style="justify-content: flex-end;">
+      <button class="theme-toggle" @click="toggleTheme">
+        <n-icon :size="18">
+          <svg v-if="theme === null" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </n-icon>
+      </button>
+    </div>
+
+    <!-- Login Card -->
+    <div class="login-card">
+      <div class="card-title">Hi, 欢迎登录 <span class="wave">👋</span></div>
+
+      <!-- Tabs -->
+      <n-tabs type="segment" size="small" v-model:value="activeTab" style="margin-bottom: 20px;">
+        <n-tab-pane name="password" tab="验证码"></n-tab-pane>
+        <n-tab-pane name="qrcode" tab="二维码"></n-tab-pane>
+      </n-tabs>
+
+      <!-- Password Form -->
+      <template v-if="activeTab === 'password'">
+        <!-- Phone -->
+        <n-input
+          v-model:value="phone"
+          placeholder="请输入手机号码"
+          size="large"
+          round
+          class="verify-code-input"
+          maxlength="11"
+          style="margin-bottom: 12px;"
+          @input="phone = phone.replace(/\D/g, '')"
+        >
+          <template #prefix>
+            <n-icon :size="18" :color="theme ? '#888' : '#999'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
               </svg>
             </n-icon>
+          </template>
+        </n-input>
+
+        <!-- Verify Code + Send Button -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <n-input
+            v-model:value="verifyCode"
+            placeholder="验证码"
+            size="large"
+            round
+            class="verify-code-input"
+            style="flex: 1;"
+            maxlength="6"
+            @input="verifyCode = verifyCode.replace(/\D/g, '')"
+          >
+            <template #prefix>
+              <n-icon :size="18" :color="theme ? '#888' : '#999'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </n-icon>
+            </template>
+          </n-input>
+          <n-button
+            size="large"
+            round
+            style="white-space: nowrap; flex-shrink: 0; min-width: 110px;"
+            :loading="isSending"
+            :disabled="countdown > 0"
+            @click="sendCode"
+          >
+            {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
+          </n-button>
+        </div>
+
+        <!-- Password -->
+        <n-input
+          v-model:value="password"
+          :type="showPassword ? 'text' : 'password'"
+          placeholder="请输入密码"
+          size="large"
+          round
+          style="margin-bottom: 20px;"
+        >
+          <template #prefix>
+            <n-icon :size="18" :color="theme ? '#888' : '#999'">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </n-icon>
+          </template>
+          <template #suffix>
+            <n-icon :size="18" :color="theme ? '#888' : '#999'" style="cursor: pointer;" @click="showPassword = !showPassword">
+              <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.04 18.04 0 0 1 .95-1.95"/><path d="M1 1l22 22"/><path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
+              </svg>
+            </n-icon>
+          </template>
+        </n-input>
+
+        <!-- Login Button -->
+        <n-button
+          type="primary"
+          size="large"
+          block
+          round
+          :loading="isLoggingIn"
+          :disabled="isLoggingIn"
+          @click="handleLogin"
+        >
+          登 录
+        </n-button>
+
+        <!-- Bottom Links -->
+        <div class="bottom-links">
+          <a href="#" class="forgot-link">忘记密码</a>
+        </div>
+
+        <!-- Third Party Login -->
+        <div class="third-party-divider">第三方登录</div>
+        <div class="third-party-icons">
+          <!-- WeChat -->
+          <button class="third-party-btn" title="微信登录">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#07c160">
+              <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
+            </svg>
+          </button>
+          <!-- QQ -->
+          <button class="third-party-btn" title="QQ登录">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#12b7f5">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5v-1c-2.5-.5-4-2-4-4 0-1.5 1-3 2.5-3.5C9.5 7 10.5 6 12 6s2.5 1 2.5 3c1.5.5 2.5 2 2.5 3.5 0 2-1.5 3.5-4 4v1h-2z"/>
+            </svg>
+          </button>
+          <!-- GitHub -->
+          <button class="third-party-btn" title="GitHub登录">
+            <svg width="18" height="18" viewBox="0 0 24 24" class="github-icon">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
+            </svg>
           </button>
         </div>
+      </template>
 
-        <!-- Login Card -->
-        <div class="login-card">
-          <div class="card-title">Hi, 欢迎登录 <span class="wave">👋</span></div>
-
-          <!-- Tabs -->
-          <n-tabs type="segment" size="small" v-model:value="activeTab" style="margin-bottom: 20px;">
-            <n-tab-pane name="password" tab="验证码"></n-tab-pane>
-            <n-tab-pane name="qrcode" tab="二维码"></n-tab-pane>
-          </n-tabs>
-
-          <!-- Password Form -->
-          <template v-if="activeTab === 'password'">
-            <!-- Phone -->
-            <n-input
-              v-model:value="phone"
-              placeholder="请输入手机号码"
-              size="large"
-              round
-              class="verify-code-input"
-              maxlength="11"
-              style="margin-bottom: 12px;"
-              @input="phone = phone.replace(/\D/g, '')"
-            >
-              <template #prefix>
-                <n-icon :size="18" color="#999">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-                  </svg>
-                </n-icon>
-              </template>
-            </n-input>
-
-            <!-- Verify Code + Send Button -->
-            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-              <n-input
-                v-model:value="verifyCode"
-                placeholder="验证码"
-                size="large"
-                round
-                class="verify-code-input"
-                style="flex: 1;"
-                maxlength="6"
-                @input="verifyCode = verifyCode.replace(/\D/g, '')"
-              >
-                <template #prefix>
-                  <n-icon :size="18" color="#999">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                  </n-icon>
-                </template>
-              </n-input>
-              <n-button
-                size="large"
-                round
-                style="white-space: nowrap; flex-shrink: 0; min-width: 110px;"
-                :loading="isSending"
-                :disabled="countdown > 0"
-                @click="sendCode"
-              >
-                {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
-              </n-button>
-            </div>
-
-            <!-- Password -->
-            <n-input
-              v-model:value="password"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="请输入密码"
-              size="large"
-              round
-              style="margin-bottom: 20px;"
-            >
-              <template #prefix>
-                <n-icon :size="18" color="#999">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                  </svg>
-                </n-icon>
-              </template>
-              <template #suffix>
-                <n-icon :size="18" color="#999" style="cursor: pointer;" @click="showPassword = !showPassword">
-                  <svg v-if="!showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.04 18.04 0 0 1 .95-1.95"/><path d="M1 1l22 22"/><path d="M9.88 9.88a3 3 0 0 0 4.24 4.24"/>
-                  </svg>
-                </n-icon>
-              </template>
-            </n-input>
-
-            <!-- Login Button -->
-            <n-button
-              type="primary"
-              size="large"
-              block
-              round
-              :loading="isLoggingIn"
-              :disabled="isLoggingIn"
-              @click="handleLogin"
-            >
-              登 录
-            </n-button>
-
-            <!-- Bottom Links -->
-            <div class="bottom-links">
-              <a href="#" class="forgot-link">忘记密码</a>
-            </div>
-
-            <!-- Third Party Login -->
-            <div class="third-party-divider">第三方登录</div>
-            <div class="third-party-icons">
-              <!-- WeChat -->
-              <button class="third-party-btn" title="微信登录">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#07c160">
-                  <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
-                </svg>
-              </button>
-              <!-- QQ -->
-              <button class="third-party-btn" title="QQ登录">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#12b7f5">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15.5v-1c-2.5-.5-4-2-4-4 0-1.5 1-3 2.5-3.5C9.5 7 10.5 6 12 6s2.5 1 2.5 3c1.5.5 2.5 2 2.5 3.5 0 2-1.5 3.5-4 4v1h-2z"/>
-                </svg>
-              </button>
-              <!-- GitHub -->
-              <button class="third-party-btn" title="GitHub登录">
-                <svg width="18" height="18" viewBox="0 0 24 24" class="github-icon">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/>
-                </svg>
-              </button>
-            </div>
-          </template>
-
-          <!-- QR Code -->
-          <div v-show="activeTab === 'qrcode'" style="text-align: center; padding: 20px 0;">
-            <div
-              style="position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; overflow: hidden; cursor: pointer;"
-              @click="refreshQRCode"
-              @mouseenter="showQROverlay = true"
-              @mouseleave="showQROverlay = false"
-            >
-              <!-- QR Code SVG -->
-              <svg id="qrcode-svg" width="180" height="180" viewBox="0 0 180 180">
-                <rect width="180" height="180" fill="#fff"/>
-              </svg>
-              <!-- Hover Overlay -->
-              <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: opacity 0.2s;"
-                   :style="{ opacity: showQROverlay ? 1 : 0 }">
-                <span style="color: #fff; font-size: 13px; text-align: center; padding: 0 10px; line-height: 1.4;">点击刷新二维码</span>
-              </div>
-            </div>
-            <!-- Countdown Circle -->
-            <div style="margin-top: 16px; display: flex; justify-content: center;">
-              <div style="position: relative; width: 64px; height: 64px;">
-                <svg width="64" height="64" viewBox="0 0 64 64" style="transform: rotate(-90deg); transform-origin: center;">
-                  <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" :stroke="theme ? '#3a3f50' : '#e8e8e8'"/>
-                  <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" stroke="#18a058"
-                    :stroke-dasharray="circumference"
-                    :stroke-dashoffset="strokeOffset"
-                    stroke-linecap="round"
-                    style="transition: stroke-dashoffset 1s linear;"/>
-                </svg>
-                <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;"
-                  :style="theme ? 'color: #ccc;' : 'color: #333;'">
-                  {{ qrCountdownText }}
-                </span>
-              </div>
-            </div>
-            <!-- WeChat Scan Hint -->
-            <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#07c160">
-                <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
-              </svg>
-              <p style="font-size: 13px;" :style="theme ? 'color: #888;' : 'color: #999;'">使用微信扫码登录</p>
-            </div>
+      <!-- QR Code -->
+      <div v-show="activeTab === 'qrcode'" style="text-align: center; padding: 20px 0;">
+        <div
+          style="position: relative; width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; overflow: hidden; cursor: pointer;"
+          @click="refreshQRCode"
+          @mouseenter="showQROverlay = true"
+          @mouseleave="showQROverlay = false"
+        >
+          <!-- QR Code SVG -->
+          <svg id="qrcode-svg" width="180" height="180" viewBox="0 0 180 180">
+            <rect width="180" height="180" fill="#fff"/>
+          </svg>
+          <!-- Hover Overlay -->
+          <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: opacity 0.2s;"
+               :style="{ opacity: showQROverlay ? 1 : 0 }">
+            <span style="color: #fff; font-size: 13px; text-align: center; padding: 0 10px; line-height: 1.4;">点击刷新二维码</span>
           </div>
         </div>
+        <!-- Countdown Circle -->
+        <div style="margin-top: 16px; display: flex; justify-content: center;">
+          <div style="position: relative; width: 64px; height: 64px;">
+            <svg width="64" height="64" viewBox="0 0 64 64" style="transform: rotate(-90deg); transform-origin: center;">
+              <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" :stroke="theme ? '#3a3f50' : '#e8e8e8'"/>
+              <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" stroke="#18a058"
+                :stroke-dasharray="circumference"
+                :stroke-dashoffset="strokeOffset"
+                stroke-linecap="round"
+                style="transition: stroke-dashoffset 1s linear;"/>
+            </svg>
+            <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;"
+              :style="theme ? 'color: #ccc;' : 'color: #333;'">
+              {{ qrCountdownText }}
+            </span>
+          </div>
+        </div>
+        <!-- WeChat Scan Hint -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#07c160">
+            <path d="M8.5 13.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm5 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2zM12 2C6.477 2 2 6.037 2 11c0 2.757 1.438 5.228 3.693 6.85L5 20l2.85-1.424C8.827 18.93 10.377 19.5 12 19.5c5.523 0 10-4.037 10-8.5S17.523 2 12 2z"/>
+          </svg>
+          <p style="font-size: 13px;" :style="theme ? 'color: #888;' : 'color: #999;'">使用微信扫码登录</p>
+        </div>
       </div>
-    </n-message-provider>
-  </n-config-provider>
-</div>
+    </div>
+  </div>
+</script>
+<div id="app"></div>
 
 <script>
 const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
 const {
   NConfigProvider, NMessageProvider, NButton, NInput, NTabs, NTabPane,
-  NIcon, NDivider, NText, darkTheme, createDiscreteApi
+  NIcon, NDivider, NText, NDialogProvider, darkTheme,
+  useMessage, useDialog
 } = naive;
 
-const { message } = createDiscreteApi(['message']);
+const themeRef = ref(null);
 
 const app = createApp({
   setup() {
-    const theme = ref(null);
+    const toggleTheme = () => {
+      themeRef.value = themeRef.value === null ? darkTheme : null;
+      document.body.classList.toggle('dark', themeRef.value !== null);
+    };
+    return { theme: themeRef, toggleTheme, darkTheme };
+  },
+  template: `
+    <n-config-provider :theme="theme">
+      <n-message-provider>
+        <n-dialog-provider>
+          <login-form @toggle-theme="toggleTheme" :theme="theme" :dark-theme="darkTheme" />
+        </n-dialog-provider>
+      </n-message-provider>
+    </n-config-provider>
+  `
+});
+
+const LoginForm = {
+  props: ['theme', 'darkTheme'],
+  emits: ['toggleTheme'],
+  setup(props, { emit }) {
+    const message = useMessage();
+    const dialog = useDialog();
     const activeTab = ref('password');
     const phone = ref('');
     const verifyCode = ref('');
@@ -441,11 +461,6 @@ const app = createApp({
       }, 1000);
     };
 
-    const toggleTheme = () => {
-      theme.value = theme.value === null ? darkTheme : null;
-      document.body.classList.toggle('dark', theme.value !== null);
-    };
-
     const handleLogin = () => {
       if (isLoggingIn.value) return;
       isLoggingIn.value = true;
@@ -472,6 +487,9 @@ const app = createApp({
         }
       }
       message.success('登录成功！');
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 500);
     };
 
     const sendCode = () => {
@@ -513,7 +531,8 @@ const app = createApp({
     });
 
     return {
-      theme, darkTheme, toggleTheme,
+      theme: props.theme, darkTheme: props.darkTheme,
+      toggleTheme: () => emit('toggleTheme'),
       activeTab,
       phone, verifyCode, countdown,
       password, showPassword,
@@ -524,11 +543,14 @@ const app = createApp({
       circumference, strokeOffset,
       refreshQRCode, generateQRCode
     };
-  }
-});
+  },
+  template: document.getElementById('login-template').innerHTML
+};
 
 app.component('n-config-provider', NConfigProvider);
 app.component('n-message-provider', NMessageProvider);
+app.component('n-dialog-provider', NDialogProvider);
+app.component('login-form', LoginForm);
 app.component('n-button', NButton);
 app.component('n-input', NInput);
 app.component('n-tabs', NTabs);

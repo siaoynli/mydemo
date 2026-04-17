@@ -19,7 +19,7 @@
 1. **样式** — 所有 CSS 内嵌在 `<head>` 中，通过 `body.dark` 类实现明暗主题切换
 2. **模板** — Vue 模板使用 Naive UI 组件（`n-config-provider`、`n-message-provider`、`n-tabs`、`n-input`、`n-button`、`n-icon`）
 3. **脚本** — 通过 `createApp()` 创建 Vue 应用，手动注册组件，挂载到 `#app`
-4. **组件** - 优先使用naiveui的组件实现页面布局，比如卡片，滚动条使用naiveui提供的,图标优先使用xicons图标库
+4. **组件** - 优先使用naiveui的组件实现页面布局，比如卡片，滚动条使用naiveui提供的,所有组件需要可以跟随主题变化样式,图标优先使用xicons图标库
 
 ### 开发方式
 

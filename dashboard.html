@@ -879,10 +879,8 @@
   </style>
 </head>
 <body>
-<div id="app">
-  <n-config-provider :theme="theme">
-    <n-message-provider>
-      <div class="dashboard-layout">
+<script type="text/html" id="dashboard-template">
+  <div class="dashboard-layout">
         <!-- 左侧菜单 -->
         <div class="sidebar" :class="{ collapsed: collapsed, hidden: !sidebarVisible || layoutFullscreen }">
           <!-- Logo -->
@@ -1318,10 +1316,8 @@
           </n-scrollbar>
         </div>
       </div>
-    </n-message-provider>
-  </n-config-provider>
 
-  <!-- 搜索模态框 -->
+      <!-- 搜索模态框 -->
   <teleport to="body">
     <div class="search-overlay" v-if="showSearch" @click.self="showSearch = false">
       <div class="search-modal">
@@ -1382,21 +1378,46 @@
       </div>
     </div>
   </teleport>
-</div>
+</script>
+<div id="app"></div>
 
 <script>
 const { createApp, ref, computed, onMounted, onUnmounted, nextTick, watch, h } = Vue;
 const {
   NConfigProvider, NMessageProvider, NInput,
   NIcon, NMenu, NBreadcrumb, NBreadcrumbItem, NAvatar,
-  NPopover, NDropdown, NTag, NScrollbar, darkTheme, createDiscreteApi
+  NPopover, NDropdown, NTag, NScrollbar, NDialogProvider, darkTheme,
+  useMessage, useDialog
 } = naive;
 
-const { message } = createDiscreteApi(['message']);
+const themeRef = ref(null);
 
 const app = createApp({
   setup() {
-    const theme = ref(null);
+    const toggleTheme = () => {
+      themeRef.value = themeRef.value === null ? darkTheme : null;
+      document.body.classList.toggle('dark', themeRef.value !== null);
+    };
+    return { theme: themeRef, toggleTheme, darkTheme };
+  },
+  template: `
+    <n-config-provider :theme="theme">
+      <n-message-provider>
+        <n-dialog-provider>
+          <dashboard-content @toggle-theme="toggleTheme" :theme="theme" :dark-theme="darkTheme" />
+        </n-dialog-provider>
+      </n-message-provider>
+    </n-config-provider>
+  `
+});
+
+const DashboardContent = {
+  props: ['theme', 'darkTheme'],
+  emits: ['toggleTheme'],
+  setup(props, { emit }) {
+    const message = useMessage();
+    const dialog = useDialog();
+    const isDark = computed(() => props.theme !== null);
     const collapsed = ref(false);
     const sidebarVisible = ref(true);
     const layoutFullscreen = ref(false);
@@ -1578,8 +1599,7 @@ const app = createApp({
 
     // 主题切换
     const toggleTheme = () => {
-      theme.value = theme.value === null ? darkTheme : null;
-      document.body.classList.toggle('dark', theme.value !== null);
+      emit('toggleTheme');
     };
 
     // Tab 管理
@@ -1785,7 +1805,15 @@ const app = createApp({
     // 用户下拉
     const handleUserAction = (key) => {
       if (key === 'logout') {
-        message.warning('退出登录');
+        dialog.warning({
+          title: '退出登录',
+          content: '确定要退出登录吗？',
+          positiveText: '确定',
+          negativeText: '取消',
+          onPositiveClick: () => {
+            window.location.href = 'login.html';
+          }
+        });
       } else {
         message.info(key === 'profile' ? '个人中心' : '修改密码');
       }
@@ -1916,9 +1944,9 @@ const app = createApp({
       const w = rect.width;
       const h = rect.height;
 
-      const isDark = theme.value !== null;
-      const textColor = isDark ? '#999' : '#666';
-      const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      const isDarkLocal = isDark.value;
+      const textColor = isDarkLocal ? '#999' : '#666';
+      const gridColor = isDarkLocal ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
       const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
       const barData1 = [32, 45, 38, 52, 48, 65, 58, 72, 60, 78, 65, 82];
@@ -2056,7 +2084,7 @@ const app = createApp({
     }
 
     // 监听主题变化重绘图表
-    watch(theme, () => {
+    watch(isDark, () => {
       drawCharts();
     });
 
@@ -2132,7 +2160,7 @@ const app = createApp({
     });
 
     return {
-      theme, darkTheme, toggleTheme,
+      theme: props.theme, darkTheme: props.darkTheme, toggleTheme,
       collapsed, sidebarVisible, layoutFullscreen, menuValue, menuOptions,
       activeTab, scrollContainer, scrollToTab, tabs, getTabActionOptions, handleTabAction, closeTab,
       contentFullscreen, isFullscreen,
@@ -2146,12 +2174,15 @@ const app = createApp({
       filteredResults, groupedResults, getGlobalIndex, highlightText,
       onSearchInput, navigateTo
     };
-  }
-});
+  },
+  template: document.getElementById('dashboard-template').innerHTML
+};
 
 // 手动注册组件
 app.component('n-config-provider', NConfigProvider);
 app.component('n-message-provider', NMessageProvider);
+app.component('n-dialog-provider', NDialogProvider);
+app.component('dashboard-content', DashboardContent);
 app.component('n-input', NInput);
 app.component('n-icon', NIcon);
 app.component('n-menu', NMenu);
