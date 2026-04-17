@@ -360,20 +360,20 @@
         </div>
         <!-- Countdown Circle -->
         <div style="margin-top: 16px; display: flex; justify-content: center;">
-          <div style="position: relative; width: 64px; height: 64px;">
-            <svg width="64" height="64" viewBox="0 0 64 64" style="transform: rotate(-90deg); transform-origin: center;">
-              <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" :stroke="theme ? '#3a3f50' : '#e8e8e8'"/>
-              <circle cx="32" cy="32" r="28" fill="none" stroke-width="3" stroke="#18a058"
-                :stroke-dasharray="circumference"
-                :stroke-dashoffset="strokeOffset"
-                stroke-linecap="round"
-                style="transition: stroke-dashoffset 1s linear;"/>
-            </svg>
-            <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;"
-              :style="theme ? 'color: #ccc;' : 'color: #333;'">
-              {{ qrCountdownText }}
-            </span>
-          </div>
+          <n-progress
+            type="circle"
+            :percentage="percentage"
+            :stroke-width="6"
+             :gap-offset-degree="180"
+
+            status="success"
+            indicator-placement="inside"
+            :indicator-text-color="theme ? '#ccc' : '#333'"
+            :rail-color="theme ? '#3a3f50' : '#e8e8e8'"
+            style="width: 64px; --n-font-size-circle: 13px;"
+          >
+            {{ qrCountdownText }}
+          </n-progress>
         </div>
         <!-- WeChat Scan Hint -->
         <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 12px;">
@@ -392,7 +392,7 @@
 const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
 const {
   NConfigProvider, NMessageProvider, NButton, NInput, NTabs, NTabPane,
-  NIcon, NDivider, NText, NDialogProvider, NDropdown, darkTheme,
+  NIcon, NDivider, NText, NDialogProvider, NDropdown, NProgress, darkTheme,
   useMessage, useDialog
 } = naive;
 
@@ -468,12 +468,8 @@ const LoginForm = {
     const showQROverlay = ref(false);
     const qrCountdown = ref(300);
     const QR_TOTAL = 300;
-    const circumference = 2 * Math.PI * 28;
+    const percentage = ref(100);
     let qrTimer = null;
-
-    const strokeOffset = computed(() => {
-      return circumference * (1 - qrCountdown.value / QR_TOTAL);
-    });
 
     const qrCountdownText = computed(() => {
       const mins = Math.floor(qrCountdown.value / 60);
@@ -523,13 +519,17 @@ const LoginForm = {
 
     const refreshQRCode = () => {
       qrCountdown.value = QR_TOTAL;
+      percentage.value = 100;
       generateQRCode();
       if (qrTimer) clearInterval(qrTimer);
       qrTimer = setInterval(() => {
         qrCountdown.value--;
+        percentage.value = Math.round(qrCountdown.value / QR_TOTAL * 100);
         if (qrCountdown.value <= 0) {
+          percentage.value = 0;
           clearInterval(qrTimer);
           qrTimer = null;
+          refreshQRCode();
         }
       }, 1000);
     };
@@ -592,9 +592,12 @@ const LoginForm = {
       generateQRCode();
       qrTimer = setInterval(() => {
         qrCountdown.value--;
+        percentage.value = Math.round(qrCountdown.value / QR_TOTAL * 100);
         if (qrCountdown.value <= 0) {
+          percentage.value = 0;
           clearInterval(qrTimer);
           qrTimer = null;
+          refreshQRCode();
         }
       }, 1000);
     });
@@ -615,8 +618,7 @@ const LoginForm = {
       isSending, isLoggingIn,
       handleLogin, sendCode,
       showQROverlay,
-      qrCountdown, qrCountdownText,
-      circumference, strokeOffset,
+      qrCountdown, qrCountdownText, percentage,
       refreshQRCode, generateQRCode
     };
   },
@@ -633,6 +635,7 @@ app.component('n-tabs', NTabs);
 app.component('n-tab-pane', NTabPane);
 app.component('n-icon', NIcon);
 app.component('n-dropdown', NDropdown);
+app.component('n-progress', NProgress);
 
 app.mount('#app');
 </script>
